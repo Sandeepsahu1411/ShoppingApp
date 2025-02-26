@@ -3,6 +3,7 @@ package com.example.shoppinguserapp.data_layer.di
 import androidx.annotation.IntDef
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,6 +22,10 @@ object DataModule {
     @Provides
     fun provideFirebaseAuth() : FirebaseAuth {
         return FirebaseAuth.getInstance()
-
     }
+    @Provides
+    fun provideStorage() : FirebaseStorage {
+        return FirebaseStorage.getInstance()
+    }
+
 }

@@ -49,7 +49,7 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
         )
     }
 
-    val isUserLoggedIn = remember {  mutableStateOf(firebaseAuth.currentUser != null) }
+    val isUserLoggedIn = remember { mutableStateOf(firebaseAuth.currentUser != null) }
 
     LaunchedEffect(currentDestination) {
         shouldShowBottomBar.value = when (currentDestination) {
@@ -98,12 +98,14 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
                         val productId = it.arguments?.getString("productId")
 //                        val data = it.toRoute<Routes.EachProductDetailScreen>()
                         EachProductDetailScreenUI(
-                            navController = navController, productId = productId.toString()
+                            navController = navController,
+                            productId = productId.toString(),
+                            firebaseAuth = firebaseAuth
 
                         )
                     }
                     composable<Routes.WishListScreen> {
-                        WishListScreenUI(navController = navController)
+                        WishListScreenUI(navController = navController, firebaseAuth = firebaseAuth)
 
                     }
 

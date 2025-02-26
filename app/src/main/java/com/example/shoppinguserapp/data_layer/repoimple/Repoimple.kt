@@ -1,23 +1,28 @@
 package com.example.shoppinguserapp.data_layer.repoimple
 
+import android.net.Uri
 import com.example.shoppinguserapp.common.CATEGORY
 import com.example.shoppinguserapp.common.PRODUCTS
 import com.example.shoppinguserapp.common.ResultState
 import com.example.shoppinguserapp.common.USERS
 import com.example.shoppinguserapp.common.WISHLIST
+import com.example.shoppinguserapp.common.WISHLIST_BY_USER
 import com.example.shoppinguserapp.domen_layer.data_model.Category
 import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.domen_layer.data_model.UserData
 import com.example.shoppinguserapp.domen_layer.repo.Repo
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
 
 class Repoimple @Inject constructor(
-    private val firebaseFireStore: FirebaseFirestore, private val firebaseAuth: FirebaseAuth
+    private val firebaseFireStore: FirebaseFirestore,
+    private val firebaseAuth: FirebaseAuth,
+    private val firebaseStorage: FirebaseStorage
 ) : Repo {
     override fun registerUser(userData: UserData): Flow<ResultState<String>> = callbackFlow {
         trySend(ResultState.Loading)
@@ -69,8 +74,7 @@ class Repoimple @Inject constructor(
     }
 
     override fun updateUserDetails(
-        userId: String,
-        userData: UserData
+        userId: String, userData: UserData
     ): Flow<ResultState<String>> = callbackFlow {
         trySend(ResultState.Loading)
         firebaseFireStore.collection(USERS).document(userId).set(userData).addOnSuccessListener {
@@ -136,25 +140,101 @@ class Repoimple @Inject constructor(
 
     }
 
-    override fun wishList(
-        userID: String,
-        productID: String
-    ): Flow<ResultState<String>> = callbackFlow {
+    override fun addWishListRepo(products: Products): Flow<ResultState<String>> = callbackFlow {
         trySend(ResultState.Loading)
-        firebaseFireStore.collection(WISHLIST).add(
-            hashMapOf(
-                "userID"
-                        to userID,
-                "productID" to productID,
-            )
-        ).addOnSuccessListener {
-            trySend(ResultState.Success("Product Added To WishList"))
-        }.addOnFailureListener {
-            trySend(ResultState.Error(it))
-        }
+        firebaseFireStore.collection(WISHLIST).document(firebaseAuth.currentUser?.uid.toString())
+            .collection(
+                WISHLIST_BY_USER
+            ).whereEqualTo("productId", products.productId).get().addOnSuccessListener {
+                if (it.documents.isNotEmpty()) {
+                    firebaseFireStore.collection(WISHLIST)
+                        .document(firebaseAuth.currentUser?.uid.toString()).collection(
+                            WISHLIST_BY_USER
+                        ).document(it.documents[0].id).delete().addOnSuccessListener {
+                            trySend(ResultState.Success("Removed to Wishlist"))
+                            close()
+                        }.addOnFailureListener {
+                            trySend(ResultState.Error(it))
+                            close()
+                        }
+                    return@addOnSuccessListener
+                } else {
+                    firebaseFireStore.collection(WISHLIST)
+                        .document(firebaseAuth.currentUser?.uid.toString())
+                        .collection(WISHLIST_BY_USER).document().set(products)
+                        .addOnSuccessListener {
+                            trySend(ResultState.Success("Added to Wishlist"))
+                            close()
+                        }.addOnFailureListener {
+                            trySend(ResultState.Error(it))
+                            close()
+                        }
+                }
+            }.addOnFailureListener {
+                trySend(ResultState.Error(it))
+                return@addOnFailureListener
+            }
         awaitClose {
             close()
         }
+    }
+
+    override fun checkWishlistRepo(productId: String): Flow<ResultState<Boolean>> = callbackFlow {
+        trySend(ResultState.Loading)
+        firebaseFireStore.collection(WISHLIST)
+            .document(firebaseAuth.currentUser?.uid.toString()).collection(
+                WISHLIST_BY_USER
+            ).whereEqualTo("productId", productId).get().addOnSuccessListener {
+                if (it.documents.isNotEmpty()) {
+                    trySend(ResultState.Success(true))
+                } else {
+                    trySend(ResultState.Success(false))
+                }
+            }.addOnFailureListener {
+                trySend(ResultState.Error(it))
+            }
+        awaitClose {
+            close()
+        }
+
+    }
+
+    override fun getWishListRepo(): Flow<ResultState<List<Products>>> = callbackFlow {
+
+        trySend(ResultState.Loading)
+        firebaseFireStore.collection(WISHLIST).document(firebaseAuth.currentUser?.uid.toString())
+            .collection(
+                WISHLIST_BY_USER
+            ).get().addOnSuccessListener {
+                val productData = it.documents.mapNotNull {
+                    it.toObject(Products::class.java)
+                }
+                trySend(ResultState.Success(productData))
+            }.addOnFailureListener {
+                trySend(ResultState.Error(it))
+            }
+        awaitClose {
+            close()
+        }
+
+    }
+
+    override fun uploadImage(imageUri: Uri): Flow<ResultState<String>> = callbackFlow {
+        trySend(ResultState.Loading)
+        firebaseStorage.reference.child("products/${imageUri.lastPathSegment}")
+            .putFile(imageUri ?: Uri.EMPTY).addOnSuccessListener {
+                it.storage.downloadUrl.addOnSuccessListener {
+                    trySend(ResultState.Success(it.toString()))
+                }
+            }.addOnFailureListener {
+                trySend(ResultState.Error(it))
+            }.addOnCanceledListener {
+                trySend(ResultState.Error(Exception("Upload Cancelled")))
+            }
+        awaitClose {
+            close()
+        }
+
     }
 
 

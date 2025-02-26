@@ -1,5 +1,7 @@
 package com.example.shoppinguserapp.ui_layer.viewmodel
 
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shoppinguserapp.common.ResultState
@@ -42,6 +44,18 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
     private val _getProductByIdState = MutableStateFlow(GetProductsByIdState())
     val getProductByIdState = _getProductByIdState.asStateFlow()
+
+    private val _addWishListState = MutableStateFlow(WishListState())
+    val addWishListState = _addWishListState.asStateFlow()
+
+    private val _checkWishlistState = MutableStateFlow(CheckWishlistState())
+    val checkWishlistState = _checkWishlistState.asStateFlow()
+
+    private val _getWishListState = MutableStateFlow(GetWishListState())
+    val getWishlistState = _getWishListState.asStateFlow()
+
+    private val _uploadImageState = MutableStateFlow(ImageUploadState())
+    val uploadImageState = _uploadImageState.asStateFlow()
 
 
     fun registerUser(userData: UserData) {
@@ -247,6 +261,149 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
     }
 
+//    fun addWishListModel(userID: String, productID: String) {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            useCase.wishListUseCase(userID, productID).collectLatest {
+//                when (it) {
+//                    is ResultState.Loading -> {
+//                        _addWishListState.value = WishListState(isLoading = true)
+//                    }
+//
+//                    is ResultState.Success -> {
+//                        _addWishListState.value = WishListState(success = it.data)
+//                    }
+//
+//                    is ResultState.Error -> {
+//                        _addWishListState.value =
+//                            WishListState(error = it.exception.message.toString())
+//                    }
+//
+//                }
+//            }
+//        }
+//    }
+//
+//    fun getWishListModel(userID: String) {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            useCase.getWishListUseCase(userID).collectLatest {
+//                when (it) {
+//                    is ResultState.Loading -> {
+//                        _getWishListState.value = GetWishListState(isLoading = true)
+//
+//                    }
+//
+//                    is ResultState.Success -> {
+//                        _getWishListState.value = GetWishListState(success = it.data)
+//                    }
+//                    is ResultState.Error -> {
+//                        _getWishListState.value =
+//                            GetWishListState(error = it.exception.message.toString())
+//
+//                    }
+//
+//
+//                }
+//
+//            }
+//
+//        }
+//
+//    }
+
+    fun addWishListModel(products: Products) {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.addWishListUseCase(products).collectLatest {
+                when (it) {
+                    is ResultState.Loading -> {
+                        _addWishListState.value = WishListState(isLoading = true)
+                    }
+
+                    is ResultState.Success -> {
+                        _addWishListState.value = WishListState(success = it.data)
+                    }
+
+                    is ResultState.Error -> {
+                        _addWishListState.value =
+                            WishListState(error = it.exception.message.toString())
+                    }
+                }
+
+            }
+        }
+    }
+
+    fun checkWishlistModel(productId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.checkWishlistUseCase(productId).collectLatest {
+                when (it) {
+                    is ResultState.Loading -> {
+                        _checkWishlistState.value = CheckWishlistState(isLoading = true)
+                    }
+
+                    is ResultState.Success -> {
+                        _checkWishlistState.value = CheckWishlistState(success = it.data)
+                    }
+
+                    is ResultState.Error -> {
+                        _checkWishlistState.value =
+                            CheckWishlistState(error = it.exception.message.toString())
+                    }
+                }
+
+            }
+        }
+    }
+
+    fun getWishlistModel() {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.getWishListUseCase().collectLatest {
+                when (it) {
+                    is ResultState.Loading -> {
+                        _getWishListState.value = GetWishListState(isLoading = true)
+                    }
+
+                    is ResultState.Success -> {
+                        _getWishListState.value = GetWishListState(success = it.data)
+                    }
+
+                    is ResultState.Error -> {
+                        _getWishListState.value =
+                            GetWishListState(error = it.exception.message.toString())
+                    }
+                }
+            }
+
+        }
+
+    }
+
+    fun resetWishlistState(){
+        _addWishListState.value =  WishListState()
+        _checkWishlistState.value = CheckWishlistState()
+        _getWishListState.value = GetWishListState()
+
+    }
+    fun uploadImage(imageUri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.uploadImageUseCase(imageUri).collectLatest {
+                when (it) {
+                    is ResultState.Loading -> {
+                        _uploadImageState.value = ImageUploadState(isLoading = true)
+                    }
+                    is ResultState.Success -> {
+                        _uploadImageState.value = ImageUploadState(success = it.data)
+                    }
+                    is ResultState.Error -> {
+                        _uploadImageState.value = ImageUploadState(error = it.exception.message.toString())
+                    }
+                }
+
+            }
+        }
+
+    }
+
+
 
 }
 
@@ -299,4 +456,29 @@ data class UpdateUserDetailsState(
     val isLoading: Boolean = false,
     var success: String? = null,
     val error: String = ""
+)
+
+data class WishListState(
+    val isLoading: Boolean = false,
+    var success: String? = null,
+    var error: String = ""
+
+)
+
+data class CheckWishlistState(
+    val isLoading: Boolean = false,
+    val success: Boolean = false,
+    val error: String = ""
+)
+
+data class GetWishListState(
+    val isLoading: Boolean = false,
+    val success: List<Products> = emptyList(),
+    val error: String = ""
+)
+
+data class ImageUploadState(
+    val isLoading: Boolean = false,
+    var success: String? = null,
+    var error: String? = null
 )

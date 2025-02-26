@@ -58,6 +58,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
@@ -78,13 +80,6 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
         R.drawable.frock_4,
         R.drawable.frock_2,
     )
-    val productImages = listOf(
-        R.drawable.product_frock,
-        R.drawable.product_frock_2,
-        R.drawable.product_frock_3,
-        R.drawable.prouct_frock_4,
-        R.drawable.product_frock_2,
-        )
 
 
     when {
@@ -158,9 +153,9 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                 contentPadding = PaddingValues(horizontal = 10.dp),
                                 horizontalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
-                                itemsIndexed(
+                                items(
                                     homeState.category ?: emptyList()
-                                ) { index, category ->
+                                ) { category ->
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         modifier = Modifier.padding(8.dp)
@@ -168,16 +163,49 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                         Box(
                                             modifier = Modifier
                                                 .size(80.dp)
+                                                .clip(CircleShape)
                                                 .background(Color.White, shape = CircleShape)
                                                 .border(1.dp, Color.Gray, shape = CircleShape),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Icon(
-                                                painter = painterResource(id = categoryImages[index % categoryImages.size]),
-                                                contentDescription = null,
-                                                tint = Color.Black,
-                                                modifier = Modifier.size(24.dp)
-                                            )
+                                            if (category.imageUrl.isNotEmpty()) {
+                                                var isLoading by remember { mutableStateOf(true) }
+
+                                                Box(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    AsyncImage(
+                                                        model = ImageRequest.Builder(LocalContext.current)
+                                                            .data(category.imageUrl)
+                                                            .crossfade(true)
+                                                            .build(),
+                                                        contentDescription = null,
+                                                        contentScale = ContentScale.Crop,
+                                                        modifier = Modifier.fillMaxSize(),
+                                                        onSuccess = { isLoading = false },
+                                                        onError = { isLoading = false }
+                                                    )
+                                                    if (isLoading) {
+                                                        CircularProgressIndicator(
+                                                            modifier = Modifier
+                                                                .size(20.dp)
+                                                                .align(Alignment.Center),
+                                                            color = Color.Red
+                                                        )
+                                                    }
+                                                }
+
+                                            } else {
+
+                                                Image(
+                                                    painter = painterResource(id = R.drawable.frock),
+                                                    contentDescription = null,
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier = Modifier.size(24.dp)
+                                                )
+                                            }
+
                                         }
                                         Spacer(modifier = Modifier.height(4.dp))
 
@@ -198,9 +226,9 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                         .fillMaxSize()
                                         .padding(bottom = 5.dp)
                                 ) {
-                                    itemsIndexed(
+                                    items(
                                         homeState.category ?: emptyList()
-                                    ) { index, category ->
+                                    ) { category ->
                                         Column(
                                             horizontalAlignment = Alignment.CenterHorizontally,
                                             modifier = Modifier.padding(8.dp)
@@ -208,16 +236,51 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                             Box(
                                                 modifier = Modifier
                                                     .size(80.dp)
+                                                    .clip(CircleShape)
                                                     .background(Color.White, shape = CircleShape)
                                                     .border(1.dp, Color.Gray, shape = CircleShape),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                Icon(
-                                                    painter = painterResource(id = categoryImages[index % categoryImages.size]),
-                                                    contentDescription = null,
-                                                    tint = Color.Black,
-                                                    modifier = Modifier.size(24.dp)
-                                                )
+                                                if (category.imageUrl.isNotEmpty()) {
+                                                    var isLoading by remember { mutableStateOf(true) }
+
+                                                    Box(
+                                                        modifier = Modifier.fillMaxSize(),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        AsyncImage(
+                                                            model = ImageRequest.Builder(
+                                                                LocalContext.current
+                                                            )
+                                                                .data(category.imageUrl)
+                                                                .crossfade(true)
+                                                                .build(),
+                                                            contentDescription = null,
+                                                            contentScale = ContentScale.Crop,
+                                                            modifier = Modifier.fillMaxSize(),
+                                                            onSuccess = { isLoading = false },
+                                                            onError = { isLoading = false }
+                                                        )
+                                                        if (isLoading) {
+                                                            CircularProgressIndicator(
+                                                                modifier = Modifier
+                                                                    .size(20.dp)
+                                                                    .align(Alignment.Center),
+                                                                color = Color.Red
+                                                            )
+                                                        }
+                                                    }
+
+                                                } else {
+
+                                                    Image(
+                                                        painter = painterResource(id = R.drawable.frock),
+                                                        contentDescription = null,
+                                                        contentScale = ContentScale.Crop,
+                                                        modifier = Modifier.size(24.dp)
+                                                    )
+                                                }
+
                                             }
                                             Spacer(modifier = Modifier.height(4.dp))
 
@@ -260,10 +323,9 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                             contentPadding = PaddingValues(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            itemsIndexed(
+                            items(
                                 homeState.products ?: emptyList()
-
-                            ) { index, product ->
+                            ) { product ->
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -285,12 +347,40 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                                 shape = RoundedCornerShape(10.dp)
                                             )
                                     ) {
-                                        Image(
-                                            painter = painterResource(id = productImages[index % productImages.size]),
-                                            contentDescription = null,
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier.fillMaxSize()
-                                        )
+                                        if (product.image.isNotEmpty()) {
+                                            var isLoading by remember { mutableStateOf(true) }
+
+                                            Box(modifier = Modifier.fillMaxSize()) {
+                                                AsyncImage(
+                                                    model = ImageRequest.Builder(LocalContext.current)
+                                                        .data(product.image)
+                                                        .crossfade(true)
+                                                        .build(),
+                                                    contentDescription = null,
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    onSuccess = { isLoading = false },
+                                                    onError = { isLoading = false }
+                                                )
+                                                if (isLoading) {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier
+                                                            .size(40.dp)
+                                                            .align(Alignment.Center),
+                                                        color = Color.Red
+                                                    )
+                                                }
+                                            }
+
+                                        } else {
+
+                                            Image(
+                                                painter = painterResource(id = R.drawable.product_frock_3),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
                                     }
 
                                     Column(
@@ -314,7 +404,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                             ),
                                             fontSize = 20.sp,
                                         )
-                                        Text(text = product.description, fontSize = 16.sp)
+                                        Text(text = product.category, fontSize = 16.sp)
                                         Row {
                                             Text(
                                                 text = "Rs:",

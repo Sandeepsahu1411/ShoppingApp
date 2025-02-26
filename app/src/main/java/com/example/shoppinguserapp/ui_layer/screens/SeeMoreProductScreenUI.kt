@@ -1,6 +1,5 @@
 package com.example.shoppinguserapp.ui_layer.screens
 
-import android.R.attr.fontWeight
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,7 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +47,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
@@ -206,15 +206,53 @@ fun SeeMoreProductScreenUI(
                                             )
                                         )
                                     }) {
-                                    Image(
-                                        painter = painterResource(id = productImages[index % productImages.size]),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(100.dp, 140.dp)
-                                            .clip(RectangleShape),
-                                        contentScale = ContentScale.Crop
+                                    if(product?.image?.isNotEmpty()!!){
+                                        var isLoading by remember { mutableStateOf(true) }
 
-                                    )
+                                        Box(modifier = Modifier) {
+                                            AsyncImage(
+                                                model = ImageRequest.Builder(LocalContext.current)
+                                                    .data(product.image)
+                                                    .crossfade(true)
+                                                    .build(),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .size(100.dp, 140.dp)
+                                                    .clip(RectangleShape),
+                                                onSuccess = { isLoading = false },
+                                                onError = { isLoading = false }
+                                            )
+                                            if (isLoading) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier
+                                                        .size(40.dp)
+                                                        .align(Alignment.Center),
+                                                    color = Color.Red
+                                                )
+                                            }
+                                        }
+
+                                    }else{
+
+                                        Image(
+                                            painter = painterResource(id = R.drawable.product_frock_3),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .size(100.dp, 140.dp)
+                                                .clip(RectangleShape),
+                                        )
+                                    }
+//                                    Image(
+//                                        painter = painterResource(id = productImages[index % productImages.size]),
+//                                        contentDescription = null,
+//                                        modifier = Modifier
+//                                            .size(100.dp, 140.dp)
+//                                            .clip(RectangleShape),
+//                                        contentScale = ContentScale.Crop
+//
+//                                    )
                                     Column(
                                         modifier = Modifier.weight(0.7f),
                                         verticalArrangement = Arrangement.SpaceAround
@@ -226,7 +264,7 @@ fun SeeMoreProductScreenUI(
                                             fontWeight = FontWeight.Bold
                                         )
                                         Text(
-                                            text = product.description,
+                                            text = product.category,
                                             fontSize = 16.sp,
                                             fontWeight = FontWeight.Bold
                                         )

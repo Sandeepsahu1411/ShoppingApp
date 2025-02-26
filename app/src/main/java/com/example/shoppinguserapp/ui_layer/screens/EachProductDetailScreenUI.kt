@@ -1,7 +1,10 @@
 package com.example.shoppinguserapp.ui_layer.screens
 
+import android.R.attr.category
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -70,20 +73,25 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
 import com.google.android.play.integrity.internal.s
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
+import com.google.android.play.integrity.internal.z
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun EachProductDetailScreenUI(
     viewModel: AppViewModel = hiltViewModel(),
     navController: NavController,
-    productId: String
+    productId: String,
+    firebaseAuth: FirebaseAuth,
 
 
-) {
+    ) {
     val eachProductDetailState = viewModel.getProductByIdState.collectAsStateWithLifecycle()
 
     LaunchedEffect(key1 = Unit) {
@@ -104,6 +112,7 @@ fun EachProductDetailScreenUI(
         }
 
         eachProductDetailState.value.success != null -> {
+            val productData = eachProductDetailState.value.success
             eachProductDetailState.value.success?.let {
 
                 Column(
@@ -118,14 +127,44 @@ fun EachProductDetailScreenUI(
                             .height(550.dp)
                     ) {
                         // Background Image
-                        Image(
-                            painter = painterResource(id = R.drawable.cheakout_img),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxSize(), // Image height adjusted
-                            contentScale = ContentScale.FillBounds
-                        )
-                        // Gradient Overlay on Image
+
+                        if (productData?.image?.isNotEmpty()!!) {
+                            var isLoading by remember { mutableStateOf(true) }
+
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(productData.image)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize(),
+                                    onSuccess = { isLoading = false },
+                                    onError = { isLoading = false }
+                                )
+                                if (isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .size(30.dp)
+                                            .align(Alignment.Center),
+                                        color = Color.Red
+                                    )
+                                }
+                            }
+
+                        } else {
+                            Image(
+                                painter = painterResource(id = R.drawable.cheakout_img),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -151,7 +190,7 @@ fun EachProductDetailScreenUI(
                             ) {
 
                                 Text(
-                                    text = it.name,
+                                    text = productData?.name ?: "NA",
                                     fontSize = 25.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = Color.White,
@@ -216,207 +255,239 @@ fun EachProductDetailScreenUI(
 
                                 },
                             contentAlignment = Alignment.Center
-                                    ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.ArrowBackIosNew,
-                                        contentDescription = null,
-                                        tint = if (isSystemInDarkTheme()) Color.White else Color.Black,
-                                    )
-
-                                }
-                                }
-
-                                    // Content Below Image
-                                    Column (
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(if (isSystemInDarkTheme()) Color.Black else Color.White)
-                                        .padding(vertical = 10.dp, horizontal = 20.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-
                         ) {
-                            // Size Options
-                            Text(
-                                text = "Size",
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.titleLarge,
+                            Icon(
+                                imageVector = Icons.Rounded.ArrowBackIosNew,
+                                contentDescription = null,
+                                tint = if (isSystemInDarkTheme()) Color.White else Color.Black,
                             )
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                listOf("M", "L", "XL", "XXL").forEach { size ->
-                                    Box(
-                                        modifier = Modifier
 
-                                            .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
-                                            .padding(horizontal = 10.dp, vertical = 8.dp)
-                                    ) {
-                                        Text(text = size)
-                                    }
-                                }
-                                Spacer(modifier = Modifier.weight(1f))
-                                IncreaseDecreesRow()
-                            }
-                            // Color Options
-                            Text(
-                                text = "Color",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-
-                                )
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                listOf(
-                                    Color.Green,
-                                    Color.Cyan,
-                                    Color.Yellow,
-                                    Color.Blue
-                                ).forEach { color ->
-                                    Box(
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .background(color, RoundedCornerShape(8.dp))
-                                            .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
-                                    )
-                                }
-                            }
-                            // Specification Section
-                            SpecificationText(eachProductDetailState.value.success!!)
-                            // Buy Now Button
-                            ButtonsContent(navController)
                         }
+                    }
+
+                    // Content Below Image
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(if (isSystemInDarkTheme()) Color.Black else Color.White)
+                            .padding(vertical = 10.dp, horizontal = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+
+                    ) {
+                        // Size Options
+                        Text(
+                            text = "Size",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            listOf("M", "L", "XL", "XXL").forEach { size ->
+                                Box(
+                                    modifier = Modifier
+
+                                        .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                                        .padding(horizontal = 10.dp, vertical = 8.dp)
+                                ) {
+                                    Text(text = size)
+                                }
+                            }
+                            Spacer(modifier = Modifier.weight(1f))
+                            IncreaseDecreesRow()
+                        }
+                        // Color Options
+                        Text(
+                            text = "Color",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+
+                            )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            listOf(
+                                Color.Green,
+                                Color.Cyan,
+                                Color.Yellow,
+                                Color.Blue
+                            ).forEach { color ->
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .background(color, RoundedCornerShape(8.dp))
+                                        .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                                )
+                            }
+                        }
+                        // Specification Section
+                        SpecificationText(eachProductDetailState.value.success!!)
+                        // Buy Now Button
+                        ButtonsContent(navController, viewModel, productData, productId)
                     }
                 }
             }
         }
-
-
     }
 
-    @Composable
-    fun IncreaseDecreesRow(modifier: Modifier = Modifier) {
-        var count by remember { mutableIntStateOf(1) }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            IconButton(onClick = { if (count > 1) count-- }) {
-                Icon(imageVector = Icons.Default.Remove, contentDescription = null)
-            }
-            Box(
-                modifier = Modifier
 
-                    .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
-                    .padding(horizontal = 15.dp, vertical = 10.dp)
-            ) {
-                Text(text = "$count", style = MaterialTheme.typography.bodyMedium)
-            }
-            IconButton(onClick = { count++ }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = null)
-            }
+}
+
+@Composable
+fun IncreaseDecreesRow(modifier: Modifier = Modifier) {
+    var count by remember { mutableIntStateOf(1) }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        IconButton(onClick = { if (count > 1) count-- }) {
+            Icon(imageVector = Icons.Default.Remove, contentDescription = null)
         }
+        Box(
+            modifier = Modifier
 
+                .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                .padding(horizontal = 15.dp, vertical = 10.dp)
+        ) {
+            Text(text = "$count", style = MaterialTheme.typography.bodyMedium)
+        }
+        IconButton(onClick = { count++ }) {
+            Icon(imageVector = Icons.Default.Add, contentDescription = null)
+        }
     }
 
-    @Composable
-    fun ButtonsContent(navController: NavController) {
-        val context = LocalContext.current
-        Column(
-            modifier = Modifier.padding(top = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(15.dp)
-        ) {
-            Button(
-                onClick = { navController.navigate(Routes.ShippingScreen) },
-                colors = ButtonDefaults.buttonColors(
-                    Color(0xfff68b8b),
-                    contentColor = Color.White
-                ),
-                modifier = Modifier
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(15.dp)
-            ) {
-                Text(
-                    text = "Buy now", fontSize = 20.sp,
-                    modifier = Modifier.padding(vertical = 5.dp)
-                )
-            }
-            Button(
-                onClick = {
-                    navController.navigate(Routes.CartScreen)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(15.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8c8585), contentColor = Color.White
-                )
-            ) {
-                Text(
-                    text = "Add to Cart ",
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(vertical = 5.dp)
-                )
-            }
-            var wishlistIcon by remember { mutableStateOf(false) }
-            Button(
-                onClick = {
-                    wishlistIcon = !wishlistIcon
-                    Toast.makeText(
-                        context, if (wishlistIcon) "Added to Wishlist" else
-                            "Removed from Wishlist", Toast.LENGTH_SHORT
-                    ).show()
+}
 
-                }, modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(15.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent, contentColor = Color(0xfff68b8b)
-                )
+@Composable
+fun ButtonsContent(
+    navController: NavController,
+    viewModel: AppViewModel,
+    productsData: Products?,
+    productId: String
+
+) {
+
+    val addWishlistState = viewModel.addWishListState.collectAsStateWithLifecycle()
+    val checkWishlistState = viewModel.checkWishlistState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.checkWishlistModel(productId)
+    }
+
+    if (addWishlistState.value.success != null) {
+//        Toast.makeText(LocalContext.current, addWishlistState.value.success, Toast.LENGTH_SHORT)
+//            .show()
+        viewModel.checkWishlistModel(productId)
+        viewModel.resetWishlistState()
+
+    } else if (addWishlistState.value.error.isNotEmpty()) {
+        Toast.makeText(LocalContext.current, addWishlistState.value.error, Toast.LENGTH_SHORT)
+            .show()
+        viewModel.resetWishlistState()
+    }
+
+
+    val context = LocalContext.current
+    Column(
+        modifier = Modifier.padding(top = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Button(
+            onClick = { navController.navigate(Routes.ShippingScreen) },
+            colors = ButtonDefaults.buttonColors(
+                Color(0xfff68b8b),
+                contentColor = Color.White
+            ),
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(15.dp)
+        ) {
+            Text(
+                text = "Buy now", fontSize = 20.sp,
+                modifier = Modifier.padding(vertical = 5.dp)
             )
-            {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Absolute.Center
-                ) {
-
-                    Icon(
-                        imageVector = if (wishlistIcon) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
-                        contentDescription = null
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = "Add to Wishlist",
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(vertical = 5.dp)
-                    )
-                }
-            }
         }
+        Button(
+            onClick = {
+                navController.navigate(Routes.CartScreen)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(15.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF8c8585), contentColor = Color.White
+            )
+        ) {
+            Text(
+                text = "Add to Cart ",
+                fontSize = 20.sp,
+                modifier = Modifier.padding(vertical = 5.dp)
+            )
+        }
+        Button(
+            onClick = {
+                viewModel.addWishListModel(productsData!!)
+
+            },
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                contentColor = Color(0xfff68b8b)
+            ),
+        ) {
+            if (addWishlistState.value.isLoading) {
+                CircularProgressIndicator(
+                    color = Color(0xfff68b8b),
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = if (checkWishlistState.value.success) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                    contentDescription = "Wishlist Icon",
+                    tint = Color(0xfff68b8b),
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (checkWishlistState.value.success) "Remove from Wishlist" else "Add to Wishlist",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xfff68b8b)
+                )
+
+
+            }
+
+
+        }
+
     }
+}
 
-    @Composable
-    fun SpecificationText(products: Products) {
+@Composable
+fun SpecificationText(products: Products) {
 
+    Text(
+        text = "Specification",
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold,
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(text = products.description)
+        Text(text = "Material: Linen")
         Text(
-            text = "Specification",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
+            text = "Material Composition: 100% Linen",
+            style = MaterialTheme.typography.bodyLarge
         )
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(text = products.description)
-            Text(text = "Material: Linen")
-            Text(
-                text = "Material Composition: 100% Linen",
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Text(
-                text = "Please bear in mind that the photo may be slightly different from the actual item in terms of color due to lighting conditions or the display used to View...",
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Justify
-            )
-        }
+        Text(
+            text = "Please bear in mind that the photo may be slightly different from the actual item in terms of color due to lighting conditions or the display used to View...",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Justify
+        )
     }
+}
 
 
 

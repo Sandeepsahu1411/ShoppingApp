@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -45,12 +47,15 @@ fun BottomNavigation(
         BottomNavigationItem("Cart", Icons.Filled.ShoppingCart, Icons.Outlined.ShoppingCart),
         BottomNavigationItem("Profile", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle)
     )
+    val isGestureNavigation = isGestureNavigationEnabled()
+
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .then(if (!isGestureNavigation) Modifier.navigationBarsPadding() else Modifier)
             .height(70.dp)
-            .background(Color(0xFFFEEEBD8), RoundedCornerShape(8.dp))
+            .background(Color(0xFFEEEBD8), RoundedCornerShape(8.dp))
     ) {
         Row(
             verticalAlignment = Alignment.Companion.CenterVertically,
@@ -110,3 +115,16 @@ data class BottomNavigationItem(
     val title: String, val selectedIcon: ImageVector, val unselectedIcon: ImageVector
 )
 
+@Composable
+fun isGestureNavigationEnabled(): Boolean {
+    val context = LocalContext.current
+    val resources = context.resources
+    val resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android")
+
+    // 2 => Gesture Navigation, 1 => 2-Button Nav, 0 => 3-Button Nav
+    return if (resourceId > 0) {
+        resources.getInteger(resourceId) == 2
+    } else {
+        false
+    }
+}
