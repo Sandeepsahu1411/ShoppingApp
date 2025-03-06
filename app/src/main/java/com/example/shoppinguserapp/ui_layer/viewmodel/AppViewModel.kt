@@ -368,7 +368,7 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
     }
 
-    fun addProductCar(cartModel: CartModel) {
+    fun addProductCart(cartModel: CartModel) {
         viewModelScope.launch(Dispatchers.IO) {
             useCase.productCartUseCase(cartModel).collectLatest {
                 when (it) {

@@ -2,7 +2,7 @@ package com.example.shoppinguserapp.domen_layer.data_model
 
 data class CartModel(
     var productId : String = "",
-    val productName : String = "",
+    val name : String = "",
     val description : String = "",
     val qty : String = "",
     val price : String = "",

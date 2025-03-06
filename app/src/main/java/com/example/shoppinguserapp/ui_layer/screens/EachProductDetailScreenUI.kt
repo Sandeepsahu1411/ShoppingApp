@@ -80,6 +80,7 @@ import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
 import com.google.android.play.integrity.internal.s
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.domen_layer.data_model.Products
+import com.example.shoppinguserapp.domen_layer.data_model.toCartModel
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
 import com.google.android.play.integrity.internal.z
 import com.google.firebase.auth.FirebaseAuth
@@ -97,8 +98,8 @@ fun EachProductDetailScreenUI(
     val eachProductDetailState = viewModel.getProductByIdState.collectAsStateWithLifecycle()
     var count by rememberSaveable { mutableIntStateOf(1) }
 
-    var selectedSize by remember { mutableStateOf("M") }
-    var selectedColor by remember { mutableStateOf(Color.Green) }
+    var selectedSize by remember { mutableStateOf("") }
+    var selectedColor by remember { mutableStateOf(Color.Transparent) }
 
     LaunchedEffect(key1 = Unit) {
         viewModel.getProductById(productId)
@@ -238,9 +239,7 @@ fun EachProductDetailScreenUI(
                                     }
 
                                 })
-
                             }
-
                         }
                         Box(
                             modifier = Modifier
@@ -284,13 +283,18 @@ fun EachProductDetailScreenUI(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             listOf("M", "L", "XL", "XXL").forEach { size ->
-                                Box(
-                                    modifier = Modifier
-                                        .border(1.dp, if (selectedSize == size) Color.Blue else Color.Gray, RoundedCornerShape(8.dp))
-                                        .background(if (selectedSize == size) Color.LightGray else Color.Transparent, RoundedCornerShape(8.dp))
-                                        .clickable { selectedSize = size } // Set selected size on click
-                                        .padding(horizontal = 10.dp, vertical = 8.dp)
-                                ){
+                                Box(modifier = Modifier
+                                    .border(
+                                        1.dp,
+                                        if (selectedSize == size) Color.Blue else Color.Gray,
+                                        RoundedCornerShape(8.dp)
+                                    )
+                                    .background(
+                                        if (selectedSize == size) Color.LightGray else Color.Transparent,
+                                        RoundedCornerShape(8.dp)
+                                    )
+                                    .clickable { selectedSize = size }
+                                    .padding(horizontal = 10.dp, vertical = 8.dp)) {
                                     Text(text = size)
                                 }
                             }
@@ -312,23 +316,29 @@ fun EachProductDetailScreenUI(
                             listOf(
                                 Color.Green, Color.Cyan, Color.Yellow, Color.Blue
                             ).forEach { color ->
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clickable{selectedColor =color}
-                                        .background(color, RoundedCornerShape(8.dp))
-                                        .border(
-                                            width = if (selectedColor == color) 3.dp else 1.dp,
-                                            color = if (selectedColor == color) Color.Black else Color.Gray,
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
-                                )
+                                Box(modifier = Modifier
+                                    .size(40.dp)
+                                    .clickable { selectedColor = color }
+                                    .background(color, RoundedCornerShape(8.dp))
+                                    .border(
+                                        width = if (selectedColor == color) 3.dp else 1.dp,
+                                        color = if (selectedColor == color) Color.Black else Color.Gray,
+                                        shape = RoundedCornerShape(8.dp)
+                                    ))
                             }
                         }
                         // Specification Section
                         SpecificationText(eachProductDetailState.value.success!!)
                         // Buy Now Button
-                        ButtonsContent(navController, viewModel, productData, productId)
+                        ButtonsContent(
+                            navController,
+                            viewModel,
+                            productData,
+                            productId,
+                            selectedColor,
+                            selectedSize,
+                            count
+                        )
                     }
                 }
             }
@@ -367,11 +377,15 @@ fun IncreaseDecreesRow(count: Int, onIncrease: () -> Unit, onDecrease: () -> Uni
 fun ButtonsContent(
     navController: NavController,
     viewModel: AppViewModel,
+
     productsData: Products?,
-    productId: String
+    productId: String,
+    selectedColor: Color,
+    selectedSize: String,
+    count: Int
 
 ) {
-
+    val context = LocalContext.current
     val addWishlistState = viewModel.addWishListState.collectAsStateWithLifecycle()
     val checkWishlistState = viewModel.checkWishlistState.collectAsStateWithLifecycle()
 
@@ -398,11 +412,11 @@ fun ButtonsContent(
         Toast.makeText(LocalContext.current, addToCartState.value.success, Toast.LENGTH_SHORT)
             .show()
         viewModel.checkProductCart(productId)
+        addToCartState.value.success = null
 
 
     } else if (addToCartState.value.error != null) {
-        Toast.makeText(LocalContext.current, addToCartState.value.error, Toast.LENGTH_SHORT)
-            .show()
+        Toast.makeText(LocalContext.current, addToCartState.value.error, Toast.LENGTH_SHORT).show()
 
     }
 
@@ -424,8 +438,7 @@ fun ButtonsContent(
 
         if (checkCartState.value.isLoading) {
             Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(color = Color(0xff2112e2))
             }
@@ -435,7 +448,19 @@ fun ButtonsContent(
                     if (checkCartState.value.success) {
                         navController.navigate(Routes.CartScreen)
                     } else {
+                        if (selectedSize.isNotEmpty() && selectedColor != Color.Transparent) {
+                            val cartModel = productsData?.toCartModel(
+                                qty = count.toString(),
+                                color = selectedColor.toString(),
+                                size = selectedSize
+                            )
+                            viewModel.addProductCart(cartModel!!)
 
+                        } else {
+                            Toast.makeText(
+                                context, "Please select size and color", Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),

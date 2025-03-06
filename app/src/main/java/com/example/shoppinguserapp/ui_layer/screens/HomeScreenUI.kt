@@ -317,7 +317,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(
-                                homeState.products ?: emptyList()
+                                homeState.products?.take(6) ?: emptyList()
                             ) { product ->
                                 Column(
                                     modifier = Modifier
