@@ -52,6 +52,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,6 +83,7 @@ import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
 import com.google.android.play.integrity.internal.z
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.AggregateField.count
 
 @Composable
 fun EachProductDetailScreenUI(
@@ -93,6 +95,10 @@ fun EachProductDetailScreenUI(
 
     ) {
     val eachProductDetailState = viewModel.getProductByIdState.collectAsStateWithLifecycle()
+    var count by rememberSaveable { mutableIntStateOf(1) }
+
+    var selectedSize by remember { mutableStateOf("M") }
+    var selectedColor by remember { mutableStateOf(Color.Green) }
 
     LaunchedEffect(key1 = Unit) {
         viewModel.getProductById(productId)
@@ -135,17 +141,13 @@ fun EachProductDetailScreenUI(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(productData.image)
-                                        .crossfade(true)
-                                        .build(),
+                                AsyncImage(model = ImageRequest.Builder(LocalContext.current)
+                                    .data(productData.image).crossfade(true).build(),
                                     contentDescription = null,
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier.fillMaxSize(),
                                     onSuccess = { isLoading = false },
-                                    onError = { isLoading = false }
-                                )
+                                    onError = { isLoading = false })
                                 if (isLoading) {
                                     CircularProgressIndicator(
                                         modifier = Modifier
@@ -155,7 +157,6 @@ fun EachProductDetailScreenUI(
                                     )
                                 }
                             }
-
                         } else {
                             Image(
                                 painter = painterResource(id = R.drawable.cheakout_img),
@@ -174,11 +175,10 @@ fun EachProductDetailScreenUI(
                                     Brush.verticalGradient(
                                         colors = listOf(
                                             Color.Transparent,
-                                            if (isSystemInDarkTheme()) Color.Black else Color.White
-                                                .copy(alpha = 1f)
-                                        ),
-                                        startY = 0f,
-                                        endY = 250f
+                                            if (isSystemInDarkTheme()) Color.Black else Color.White.copy(
+                                                alpha = 1f
+                                            )
+                                        ), startY = 0f, endY = 250f
                                     )
                                 )
                                 .clip(shape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)),
@@ -253,8 +253,7 @@ fun EachProductDetailScreenUI(
                                 .clickable {
                                     navController.navigateUp()
 
-                                },
-                            contentAlignment = Alignment.Center
+                                }, contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.ArrowBackIosNew,
@@ -287,15 +286,18 @@ fun EachProductDetailScreenUI(
                             listOf("M", "L", "XL", "XXL").forEach { size ->
                                 Box(
                                     modifier = Modifier
-
-                                        .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                                        .border(1.dp, if (selectedSize == size) Color.Blue else Color.Gray, RoundedCornerShape(8.dp))
+                                        .background(if (selectedSize == size) Color.LightGray else Color.Transparent, RoundedCornerShape(8.dp))
+                                        .clickable { selectedSize = size } // Set selected size on click
                                         .padding(horizontal = 10.dp, vertical = 8.dp)
-                                ) {
+                                ){
                                     Text(text = size)
                                 }
                             }
                             Spacer(modifier = Modifier.weight(1f))
-                            IncreaseDecreesRow()
+                            IncreaseDecreesRow(count,
+                                onIncrease = { count++ },
+                                onDecrease = { if (count > 1) count-- })
                         }
                         // Color Options
                         Text(
@@ -308,16 +310,18 @@ fun EachProductDetailScreenUI(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             listOf(
-                                Color.Green,
-                                Color.Cyan,
-                                Color.Yellow,
-                                Color.Blue
+                                Color.Green, Color.Cyan, Color.Yellow, Color.Blue
                             ).forEach { color ->
                                 Box(
                                     modifier = Modifier
                                         .size(40.dp)
+                                        .clickable{selectedColor =color}
                                         .background(color, RoundedCornerShape(8.dp))
-                                        .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                                        .border(
+                                            width = if (selectedColor == color) 3.dp else 1.dp,
+                                            color = if (selectedColor == color) Color.Black else Color.Gray,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
                                 )
                             }
                         }
@@ -335,13 +339,13 @@ fun EachProductDetailScreenUI(
 }
 
 @Composable
-fun IncreaseDecreesRow(modifier: Modifier = Modifier) {
-    var count by remember { mutableIntStateOf(1) }
+fun IncreaseDecreesRow(count: Int, onIncrease: () -> Unit, onDecrease: () -> Unit) {
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        IconButton(onClick = { if (count > 1) count-- }) {
+        IconButton(onClick = { onDecrease() }) {
             Icon(imageVector = Icons.Default.Remove, contentDescription = null)
         }
         Box(
@@ -352,7 +356,7 @@ fun IncreaseDecreesRow(modifier: Modifier = Modifier) {
         ) {
             Text(text = "$count", style = MaterialTheme.typography.bodyMedium)
         }
-        IconButton(onClick = { count++ }) {
+        IconButton(onClick = { onIncrease() }) {
             Icon(imageVector = Icons.Default.Add, contentDescription = null)
         }
     }
@@ -371,8 +375,12 @@ fun ButtonsContent(
     val addWishlistState = viewModel.addWishListState.collectAsStateWithLifecycle()
     val checkWishlistState = viewModel.checkWishlistState.collectAsStateWithLifecycle()
 
+    val addToCartState = viewModel.addToCartState.collectAsStateWithLifecycle()
+    val checkCartState = viewModel.checkProductCartState.collectAsStateWithLifecycle()
+
     LaunchedEffect(Unit) {
         viewModel.checkWishlistModel(productId)
+        viewModel.checkProductCart(productId)
     }
 
     if (addWishlistState.value.success != null) {
@@ -386,61 +394,78 @@ fun ButtonsContent(
             .show()
         viewModel.resetWishlistState()
     }
+    if (addToCartState.value.success != null) {
+        Toast.makeText(LocalContext.current, addToCartState.value.success, Toast.LENGTH_SHORT)
+            .show()
+        viewModel.checkProductCart(productId)
 
 
-    val context = LocalContext.current
+    } else if (addToCartState.value.error != null) {
+        Toast.makeText(LocalContext.current, addToCartState.value.error, Toast.LENGTH_SHORT)
+            .show()
+
+    }
+
     Column(
-        modifier = Modifier.padding(top = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        modifier = Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Button(
             onClick = { navController.navigate(Routes.ShippingScreen) },
             colors = ButtonDefaults.buttonColors(
-                Color(0xfff68b8b),
-                contentColor = Color.White
+                Color(0xfff68b8b), contentColor = Color.White
             ),
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(15.dp)
         ) {
             Text(
-                text = "Buy now", fontSize = 20.sp,
-                modifier = Modifier.padding(vertical = 5.dp)
+                text = "Buy now", fontSize = 20.sp, modifier = Modifier.padding(vertical = 5.dp)
             )
         }
-        Button(
-            onClick = {
-                navController.navigate(Routes.CartScreen)
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(15.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF8c8585), contentColor = Color.White
-            )
-        ) {
-            Text(
-                text = "Add to Cart ",
-                fontSize = 20.sp,
-                modifier = Modifier.padding(vertical = 5.dp)
-            )
+
+        if (checkCartState.value.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color(0xff2112e2))
+            }
+        } else {
+            Button(
+                onClick = {
+                    if (checkCartState.value.success) {
+                        navController.navigate(Routes.CartScreen)
+                    } else {
+
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(15.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF8c8585), contentColor = Color.White
+                )
+            ) {
+                Text(
+                    text = if (checkCartState.value.success) "Go to Cart " else "Add to Cart ",
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(vertical = 5.dp)
+                )
+            }
+
         }
         Button(
             onClick = {
                 viewModel.addWishListModel(productsData!!)
 
             },
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent,
-                contentColor = Color(0xfff68b8b)
+                containerColor = Color.Transparent, contentColor = Color(0xfff68b8b)
             ),
         ) {
             if (addWishlistState.value.isLoading) {
                 CircularProgressIndicator(
-                    color = Color(0xfff68b8b),
-                    modifier = Modifier.size(24.dp)
+                    color = Color(0xfff68b8b), modifier = Modifier.size(24.dp)
                 )
             } else {
                 Icon(
@@ -478,8 +503,7 @@ fun SpecificationText(products: Products) {
         Text(text = products.description)
         Text(text = "Material: Linen")
         Text(
-            text = "Material Composition: 100% Linen",
-            style = MaterialTheme.typography.bodyLarge
+            text = "Material Composition: 100% Linen", style = MaterialTheme.typography.bodyLarge
         )
         Text(
             text = "Please bear in mind that the photo may be slightly different from the actual item in terms of color due to lighting conditions or the display used to View...",

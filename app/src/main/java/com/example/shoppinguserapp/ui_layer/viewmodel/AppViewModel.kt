@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shoppinguserapp.common.ResultState
+import com.example.shoppinguserapp.domen_layer.data_model.CartModel
 import com.example.shoppinguserapp.domen_layer.data_model.Category
 import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.domen_layer.data_model.UserData
@@ -56,6 +57,15 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
     private val _uploadImageState = MutableStateFlow(ImageUploadState())
     val uploadImageState = _uploadImageState.asStateFlow()
+
+    private val _addToCartState = MutableStateFlow(AddToCartState())
+    val addToCartState = _addToCartState.asStateFlow()
+
+    private val _checkProductCartState = MutableStateFlow(CheckProductCartState())
+    val checkProductCartState = _checkProductCartState.asStateFlow()
+
+    private val _getCartState = MutableStateFlow(GetProductsCartState())
+    val getCartState = _getCartState.asStateFlow()
 
 
     fun registerUser(userData: UserData) {
@@ -261,55 +271,6 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
     }
 
-//    fun addWishListModel(userID: String, productID: String) {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            useCase.wishListUseCase(userID, productID).collectLatest {
-//                when (it) {
-//                    is ResultState.Loading -> {
-//                        _addWishListState.value = WishListState(isLoading = true)
-//                    }
-//
-//                    is ResultState.Success -> {
-//                        _addWishListState.value = WishListState(success = it.data)
-//                    }
-//
-//                    is ResultState.Error -> {
-//                        _addWishListState.value =
-//                            WishListState(error = it.exception.message.toString())
-//                    }
-//
-//                }
-//            }
-//        }
-//    }
-//
-//    fun getWishListModel(userID: String) {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            useCase.getWishListUseCase(userID).collectLatest {
-//                when (it) {
-//                    is ResultState.Loading -> {
-//                        _getWishListState.value = GetWishListState(isLoading = true)
-//
-//                    }
-//
-//                    is ResultState.Success -> {
-//                        _getWishListState.value = GetWishListState(success = it.data)
-//                    }
-//                    is ResultState.Error -> {
-//                        _getWishListState.value =
-//                            GetWishListState(error = it.exception.message.toString())
-//
-//                    }
-//
-//
-//                }
-//
-//            }
-//
-//        }
-//
-//    }
-
     fun addWishListModel(products: Products) {
         viewModelScope.launch(Dispatchers.IO) {
             useCase.addWishListUseCase(products).collectLatest {
@@ -377,12 +338,13 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
     }
 
-    fun resetWishlistState(){
-        _addWishListState.value =  WishListState()
+    fun resetWishlistState() {
+        _addWishListState.value = WishListState()
         _checkWishlistState.value = CheckWishlistState()
         _getWishListState.value = GetWishListState()
 
     }
+
     fun uploadImage(imageUri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
             useCase.uploadImageUseCase(imageUri).collectLatest {
@@ -390,11 +352,14 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
                     is ResultState.Loading -> {
                         _uploadImageState.value = ImageUploadState(isLoading = true)
                     }
+
                     is ResultState.Success -> {
                         _uploadImageState.value = ImageUploadState(success = it.data)
                     }
+
                     is ResultState.Error -> {
-                        _uploadImageState.value = ImageUploadState(error = it.exception.message.toString())
+                        _uploadImageState.value =
+                            ImageUploadState(error = it.exception.message.toString())
                     }
                 }
 
@@ -403,6 +368,70 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
     }
 
+    fun addProductCar(cartModel: CartModel) {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.productCartUseCase(cartModel).collectLatest {
+                when (it) {
+                    is ResultState.Loading -> {
+                        _addToCartState.value = AddToCartState(isLoading = true)
+                    }
+
+                    is ResultState.Success -> {
+                        _addToCartState.value = AddToCartState(success = it.data)
+                    }
+
+                    is ResultState.Error -> {
+                        _addToCartState.value =
+                            AddToCartState(error = it.exception.message.toString())
+                    }
+                }
+            }
+        }
+    }
+
+    fun checkProductCart(productId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.checkProductCartUseCase(productId).collectLatest {
+                when (it) {
+                    is ResultState.Loading -> {
+                        _checkProductCartState.value = CheckProductCartState(isLoading = true)
+                    }
+
+                    is ResultState.Success -> {
+                        _checkProductCartState.value = CheckProductCartState(success = it.data)
+                    }
+
+                    is ResultState.Error -> {
+                        _checkProductCartState.value =
+                            CheckProductCartState(error = it.exception.message.toString())
+                    }
+                }
+            }
+        }
+
+    }
+
+    fun getProductsCart() {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.getCartUseCase().collectLatest {
+                when (it) {
+                    is ResultState.Loading -> {
+                        _getCartState.value = GetProductsCartState(isLoading = true)
+                    }
+
+                    is ResultState.Success -> {
+                        _getCartState.value = GetProductsCartState(success = it.data)
+                    }
+
+                    is ResultState.Error -> {
+                        _getCartState.value =
+                            GetProductsCartState(error = it.exception.message.toString())
+                    }
+                }
+            }
+        }
+
+    }
 
 
 }
@@ -481,4 +510,22 @@ data class ImageUploadState(
     val isLoading: Boolean = false,
     var success: String? = null,
     var error: String? = null
+)
+
+data class AddToCartState(
+    val isLoading: Boolean = false,
+    var success: String? = null,
+    var error: String? = null
+)
+
+data class CheckProductCartState(
+    val isLoading: Boolean = false,
+    val success: Boolean = false,
+    val error: String = ""
+)
+
+data class GetProductsCartState(
+    val isLoading: Boolean = false,
+    val success: List<CartModel> = emptyList(),
+    val error: String = ""
 )

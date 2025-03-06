@@ -1,12 +1,15 @@
 package com.example.shoppinguserapp.data_layer.repoimple
 
 import android.net.Uri
+import com.example.shoppinguserapp.common.ADD_TO_CART
+import com.example.shoppinguserapp.common.ADD_TO_CART_BY_USER
 import com.example.shoppinguserapp.common.CATEGORY
 import com.example.shoppinguserapp.common.PRODUCTS
 import com.example.shoppinguserapp.common.ResultState
 import com.example.shoppinguserapp.common.USERS
 import com.example.shoppinguserapp.common.WISHLIST
 import com.example.shoppinguserapp.common.WISHLIST_BY_USER
+import com.example.shoppinguserapp.domen_layer.data_model.CartModel
 import com.example.shoppinguserapp.domen_layer.data_model.Category
 import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.domen_layer.data_model.UserData
@@ -237,5 +240,111 @@ class Repoimple @Inject constructor(
 
     }
 
+    override fun productCartRepo(cartModel: CartModel): Flow<ResultState<String>> = callbackFlow {
+        trySend(ResultState.Loading)
+        firebaseFireStore.collection(ADD_TO_CART).document(firebaseAuth.currentUser?.uid.toString())
+            .collection(
+                ADD_TO_CART_BY_USER
+            ).whereEqualTo("productId", cartModel.productId).get().addOnSuccessListener {
+                if (it.documents.isNotEmpty()) {
+                    firebaseFireStore.collection(ADD_TO_CART)
+                        .document(firebaseAuth.currentUser?.uid.toString())
+                        .collection(ADD_TO_CART_BY_USER).document(it.documents[0].id).delete()
+                        .addOnSuccessListener {
+                            trySend(ResultState.Success("Removed from Cart"))
+                            close()
+                        }.addOnFailureListener {
+                            trySend(ResultState.Error(it))
+                            close()
+                        }
+                    return@addOnSuccessListener
 
+                } else {
+                    firebaseFireStore.collection(ADD_TO_CART)
+                        .document(firebaseAuth.currentUser?.uid.toString())
+                        .collection(ADD_TO_CART_BY_USER).document().set(cartModel)
+                        .addOnSuccessListener {
+                            trySend(ResultState.Success("Added to Cart"))
+                            close()
+                        }.addOnFailureListener {
+                            trySend(ResultState.Error(it))
+                            close()
+                        }
+                }
+            }.addOnFailureListener {
+                trySend(ResultState.Error(it))
+                return@addOnFailureListener
+            }
+
+        awaitClose {
+            close()
+        }
+
+    }
+
+    override fun checkProductCartRepo(productId: String): Flow<ResultState<Boolean>> =
+        callbackFlow {
+            trySend(ResultState.Loading)
+            firebaseFireStore.collection(ADD_TO_CART)
+                .document(firebaseAuth.currentUser?.uid.toString()).collection(ADD_TO_CART_BY_USER)
+                .whereEqualTo("productId", productId).get().addOnSuccessListener {
+                    if (it.documents.isNotEmpty()) {
+                        trySend(ResultState.Success(true))
+                    } else {
+                        trySend(ResultState.Success(false))
+                    }
+                }.addOnFailureListener {
+                    trySend(ResultState.Error(it))
+                }
+
+            awaitClose {
+                close()
+            }
+
+        }
+
+    override fun getProductsCartRepo(): Flow<ResultState<List<CartModel>>> = callbackFlow {
+        trySend(ResultState.Loading)
+        firebaseFireStore.collection(ADD_TO_CART).document(firebaseAuth.currentUser?.uid.toString())
+            .collection(ADD_TO_CART_BY_USER).get().addOnSuccessListener {
+                val data = it.documents.mapNotNull {
+                    it.toObject(CartModel::class.java)
+                }
+                trySend(ResultState.Success(data))
+
+            }.addOnFailureListener {
+                trySend(ResultState.Error(it))
+            }
+        awaitClose {
+            close()
+        }
+
+
+    }
+
+    override fun deleteProductCartRepo(productId: String): Flow<ResultState<String>> =
+        callbackFlow {
+            trySend(ResultState.Loading)
+            firebaseFireStore.collection(ADD_TO_CART)
+                .document(firebaseAuth.currentUser?.uid.toString())
+                .collection(ADD_TO_CART_BY_USER).whereEqualTo("productId", productId).get()
+                .addOnSuccessListener {
+                    if (it.documents.isNotEmpty()) {
+                        firebaseFireStore.collection(ADD_TO_CART)
+                            .document(firebaseAuth.currentUser?.uid.toString())
+                            .collection(ADD_TO_CART_BY_USER).document(it.documents[0].id).delete()
+                            .addOnSuccessListener {
+                                trySend(ResultState.Success("Removed from Cart"))
+                                close()
+
+
+                            }
+
+                    }
+
+
+                }
+
+
+        }
 }

@@ -72,14 +72,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
     val homeState by viewModel.homeScreenState.collectAsStateWithLifecycle()
     var seeAllCategory by remember { mutableStateOf(false) }
 
-    // Static Images List  CategoryS And Products
-    val categoryImages = listOf(
-        R.drawable.frock,
-        R.drawable.frock_2,
-        R.drawable.frock_3,
-        R.drawable.frock_4,
-        R.drawable.frock_2,
-    )
+
 
 
     when {
@@ -154,7 +147,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                 horizontalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
                                 items(
-                                    homeState.category ?: emptyList()
+                                    homeState.category?.take(6) ?: emptyList()
                                 ) { category ->
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
