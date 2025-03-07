@@ -18,7 +18,7 @@ data class Products(
 )
 
 fun Products.toCartModel(
-    qty: String = "1",
+    qty: Int = 1,
     color: String = "",
     size: String = ""
 

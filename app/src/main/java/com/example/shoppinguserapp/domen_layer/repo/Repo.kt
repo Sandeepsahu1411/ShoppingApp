@@ -32,6 +32,7 @@ interface Repo {
     fun checkProductCartRepo(productId: String): Flow<ResultState<Boolean>>
     fun getProductsCartRepo(): Flow<ResultState<List<CartModel>>>
     fun deleteProductCartRepo(productId: String): Flow<ResultState<String>>
+    fun updateProductCartRepo( productId: String, newQty: Int): Flow<ResultState<String>>
 
 
 

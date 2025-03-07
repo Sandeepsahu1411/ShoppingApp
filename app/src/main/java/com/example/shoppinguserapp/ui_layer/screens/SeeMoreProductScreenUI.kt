@@ -62,14 +62,6 @@ fun SeeMoreProductScreenUI(
     val productState = viewModel.getProductsState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    val productImages = listOf(
-        R.drawable.product_frock,
-        R.drawable.product_frock_2,
-        R.drawable.product_frock_3,
-        R.drawable.prouct_frock_4,
-        R.drawable.product_frock_2,
-
-        )
     var searchQuery by remember { mutableStateOf("") }
 
 
@@ -209,7 +201,11 @@ fun SeeMoreProductScreenUI(
                                     if(product?.image?.isNotEmpty()!!){
                                         var isLoading by remember { mutableStateOf(true) }
 
-                                        Box(modifier = Modifier) {
+                                        Box(modifier = Modifier
+                                            .size(100.dp, 140.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+
+                                        ) {
                                             AsyncImage(
                                                 model = ImageRequest.Builder(LocalContext.current)
                                                     .data(product.image)
@@ -218,8 +214,7 @@ fun SeeMoreProductScreenUI(
                                                 contentDescription = null,
                                                 contentScale = ContentScale.Crop,
                                                 modifier = Modifier
-                                                    .size(100.dp, 140.dp)
-                                                    .clip(RectangleShape),
+                                                    .fillMaxSize(),
                                                 onSuccess = { isLoading = false },
                                                 onError = { isLoading = false }
                                             )
@@ -240,19 +235,10 @@ fun SeeMoreProductScreenUI(
                                             contentDescription = null,
                                             contentScale = ContentScale.Crop,
                                             modifier = Modifier
-                                                .size(100.dp, 140.dp)
-                                                .clip(RectangleShape),
+                                                .fillMaxSize(),
                                         )
                                     }
-//                                    Image(
-//                                        painter = painterResource(id = productImages[index % productImages.size]),
-//                                        contentDescription = null,
-//                                        modifier = Modifier
-//                                            .size(100.dp, 140.dp)
-//                                            .clip(RectangleShape),
-//                                        contentScale = ContentScale.Crop
-//
-//                                    )
+
                                     Column(
                                         modifier = Modifier.weight(0.7f),
                                         verticalArrangement = Arrangement.SpaceAround

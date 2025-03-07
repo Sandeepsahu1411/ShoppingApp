@@ -308,7 +308,7 @@ fun CartHeaderRow() {
         headers.forEach { (title, weight) ->
             Text(
                 text = title,
-                fontSize = 20.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
 

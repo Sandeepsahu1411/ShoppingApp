@@ -336,15 +336,55 @@ class Repoimple @Inject constructor(
                             .addOnSuccessListener {
                                 trySend(ResultState.Success("Removed from Cart"))
                                 close()
-
-
                             }
-
                     }
-
-
                 }
-
-
+            awaitClose { close() }
         }
+
+    override fun updateProductCartRepo(
+        productId: String,
+        newQty: Int
+    ): Flow<ResultState<String>> = callbackFlow {
+        trySend(ResultState.Loading)
+
+        val userId = firebaseAuth.currentUser?.uid.toString()
+
+        firebaseFireStore.collection(ADD_TO_CART).document(userId)
+            .collection(ADD_TO_CART_BY_USER)
+            .whereEqualTo("productId", productId)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (documents.documents.isNotEmpty()) {
+                    val docId = documents.documents[0].id
+
+
+                    firebaseFireStore.collection(ADD_TO_CART)
+                        .document(userId)
+                        .collection(ADD_TO_CART_BY_USER)
+                        .document(docId)
+                        .update("qty", newQty)
+                        .addOnSuccessListener {
+                            trySend(ResultState.Success("Quantity Updated"))
+                            close()
+                        }
+                        .addOnFailureListener {
+                            trySend(ResultState.Error(it))
+                            close()
+                        }
+                } else {
+                    trySend(ResultState.Error(Exception("Product not found in cart")))
+                    close()
+                }
+            }
+            .addOnFailureListener {
+                trySend(ResultState.Error(it))
+                close()
+            }
+
+        awaitClose {
+            close()
+        }
+    }
+
 }

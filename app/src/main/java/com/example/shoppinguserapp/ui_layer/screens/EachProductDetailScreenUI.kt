@@ -450,8 +450,8 @@ fun ButtonsContent(
                     } else {
                         if (selectedSize.isNotEmpty() && selectedColor != Color.Transparent) {
                             val cartModel = productsData?.toCartModel(
-                                qty = count.toString(),
-                                color = selectedColor.toString(),
+                                qty = count,
+                                color = colorToHex(selectedColor),
                                 size = selectedSize
                             )
                             viewModel.addProductCart(cartModel!!)
@@ -537,6 +537,16 @@ fun SpecificationText(products: Products) {
         )
     }
 }
+
+// Function to convert Color to HEX String
+fun colorToHex(color: Color): String {
+    val red = (color.red * 255).toInt()
+    val green = (color.green * 255).toInt()
+    val blue = (color.blue * 255).toInt()
+    return String.format("#%02X%02X%02X", red, green, blue)
+}
+
+
 
 
 

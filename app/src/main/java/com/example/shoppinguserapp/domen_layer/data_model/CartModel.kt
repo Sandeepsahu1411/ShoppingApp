@@ -4,7 +4,7 @@ data class CartModel(
     var productId : String = "",
     val name : String = "",
     val description : String = "",
-    val qty : String = "",
+    val qty : Int = 1,
     val price : String = "",
     val finalPrice : String = "",
     val category : String = "",

@@ -28,6 +28,9 @@ class UseCase @Inject constructor(private val repo: Repo) {
     fun productCartUseCase(cartModel: CartModel) = repo.productCartRepo(cartModel)
     fun checkProductCartUseCase(productId: String) = repo.checkProductCartRepo(productId)
     fun getCartUseCase() = repo.getProductsCartRepo()
+    fun deleteProductCartUseCase(productId: String) = repo.deleteProductCartRepo(productId)
+    fun updateProductCartUseCase(productId: String, newQty: Int) = repo.updateProductCartRepo(productId, newQty)
+
 
 
 

@@ -67,6 +67,12 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
     private val _getCartState = MutableStateFlow(GetProductsCartState())
     val getCartState = _getCartState.asStateFlow()
 
+    private val _updateProductCartState = MutableStateFlow(UpdateProductCartState())
+
+
+    private val _deleteProductCartState = MutableStateFlow(DeleteProductCartState())
+    val deleteProductCartState = _deleteProductCartState.asStateFlow()
+
 
     fun registerUser(userData: UserData) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -118,6 +124,7 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
         }
     }
+
 
     fun clearLoginState() {
         _loginUserState.value = _loginUserState.value.copy(error = null, success = null)
@@ -433,6 +440,50 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
     }
 
+    fun updateProductCart(productId: String, newQty: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.updateProductCartUseCase(productId, newQty).collectLatest {
+                when (it) {
+                    is ResultState.Loading -> {
+                        _updateProductCartState.value = UpdateProductCartState(isLoading = true)
+                    }
+
+                    is ResultState.Success -> {
+                        _updateProductCartState.value = UpdateProductCartState(success = it.data)
+                    }
+
+                    is ResultState.Error -> {
+                        _updateProductCartState.value =
+                            UpdateProductCartState(error = it.exception.message.toString())
+                    }
+                }
+            }
+        }
+
+    }
+
+    fun deleteProductCart(productId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.deleteProductCartUseCase(productId).collectLatest {
+                when (it) {
+                    is ResultState.Loading -> {
+                        _deleteProductCartState.value = DeleteProductCartState(isLoading = true)
+                    }
+
+                    is ResultState.Success -> {
+                        _deleteProductCartState.value = DeleteProductCartState(success = it.data)
+                    }
+
+                    is ResultState.Error -> {
+                        _deleteProductCartState.value =
+                            DeleteProductCartState(error = it.exception.message.toString())
+                    }
+                }
+            }
+        }
+
+    }
+
 
 }
 
@@ -527,5 +578,17 @@ data class CheckProductCartState(
 data class GetProductsCartState(
     val isLoading: Boolean = false,
     val success: List<CartModel> = emptyList(),
-    val error: String = ""
+    val error: String? = null
+)
+
+data class UpdateProductCartState(
+    val isLoading: Boolean = false,
+    var success: String? = null,
+    var error: String? = null
+)
+
+data class DeleteProductCartState(
+    val isLoading: Boolean = false,
+    var success: String? = null,
+    var error: String? = null
 )

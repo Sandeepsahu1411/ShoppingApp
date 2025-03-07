@@ -379,7 +379,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
-
+                                            .height(150.dp)
                                             .border(
                                                 2.dp,
                                                 Color.LightGray,
@@ -390,57 +390,66 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                         Text(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .padding(vertical = 5.dp),
+                                                .weight(0.35f)
+                                                ,
                                             text = product.name,
                                             color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color(
                                                 0xFF8C8585
                                             ),
-                                            fontSize = 20.sp,
+                                            lineHeight = 16.sp,
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold
+
                                         )
-                                        Text(text = product.category, fontSize = 16.sp)
-                                        Row {
-                                            Text(
-                                                text = "Rs:",
-                                                color = Color(0xFFFF4081),
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            Text(
-                                                text = " ${product.finalPrice}",
-                                                color = Color(0xFFFF4081),
-                                                fontSize = 20.sp,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(top = 4.dp)
-                                        ) {
-                                            Text(
-                                                text = "Rs:",
-                                                color = if (isSystemInDarkTheme()) Color.White else Color(
-                                                    0xFFFF4081
-                                                ),
+                                        Column(
+                                            Modifier.weight(0.65f)
+                                        ){
+                                            Text(text = product.category, fontSize = 16.sp)
+                                            Row {
+                                                Text(
+                                                    text = "Rs:",
+                                                    color = Color(0xFFFF4081),
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = " ${product.finalPrice}",
+                                                    color = Color(0xFFFF4081),
+                                                    fontSize = 20.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(top = 4.dp)
+                                            ) {
+                                                Text(
+                                                    text = "Rs:",
+                                                    color = if (isSystemInDarkTheme()) Color.White else Color(
+                                                        0xFFFF4081
+                                                    ),
 
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            Text(
-                                                text = " ${product.price} ",
-                                                fontSize = 16.sp,
-                                                textDecoration = TextDecoration.LineThrough
-                                            )
-                                            Spacer(modifier = Modifier.width(3.dp))
-                                            Text(
-                                                text = "20% off",
-                                                color = Color(0xFFFF4081),
-                                                fontSize = 12.sp,
-                                                fontWeight = FontWeight.Bold
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = " ${product.price} ",
+                                                    fontSize = 16.sp,
+                                                    textDecoration = TextDecoration.LineThrough
+                                                )
+                                                Spacer(modifier = Modifier.width(3.dp))
+                                                Text(
+                                                    text = "20% off",
+                                                    color = Color(0xFFFF4081),
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.Bold
 
-                                            )
+                                                )
+                                            }
+
                                         }
                                     }
                                 }
