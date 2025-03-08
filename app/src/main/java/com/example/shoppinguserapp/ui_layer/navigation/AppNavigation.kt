@@ -18,7 +18,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.example.shoppinguserapp.ui_layer.screens.CartScreenUI
+import com.example.shoppinguserapp.ui_layer.screens.EachCategoryScreenUI
 import com.example.shoppinguserapp.ui_layer.screens.EachProductDetailScreenUI
 import com.example.shoppinguserapp.ui_layer.screens.HomeScreenUI
 import com.example.shoppinguserapp.ui_layer.screens.NotificationScreenUI
@@ -44,6 +46,7 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
             when (currentDestination) {
                 Routes.SignInScreen::class.qualifiedName,
                 Routes.SignUpScreen::class.qualifiedName -> false
+
                 else -> true
             }
         )
@@ -103,6 +106,11 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
                             firebaseAuth = firebaseAuth
 
                         )
+                    }
+                    composable<Routes.EachCategoryScreen> {
+                        val categoryName = it.arguments?.getString("categoryName")
+//                        val data = it.toRoute<Routes.EachCategoryScreen>()
+                        EachCategoryScreenUI(navController, categoryName.toString())
                     }
                     composable<Routes.WishListScreen> {
                         WishListScreenUI(navController = navController, firebaseAuth = firebaseAuth)

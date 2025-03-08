@@ -59,6 +59,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
@@ -72,44 +73,42 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
     val homeState by viewModel.homeScreenState.collectAsStateWithLifecycle()
     var seeAllCategory by remember { mutableStateOf(false) }
 
+    Column(
+        modifier = Modifier.fillMaxSize()
 
-
-
-    when {
-        homeState.isLoading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+    ) {
+        // Search Box And Notification Icon
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Box(modifier = Modifier.weight(1f)) { SearchBox() }
+            IconButton(onClick = {
+                navController.navigate(
+                    Routes.NotificationScreen
+                )
+            }) {
+                Icon(
+                    Icons.Outlined.NotificationAdd, contentDescription = "notification",
+                    tint = Color(0xFFF68B8B),
+                    modifier = Modifier.size(30.dp),
+                )
             }
         }
-
-        homeState.error != null -> {
-            Toast.makeText(context, homeState.error, Toast.LENGTH_SHORT).show()
-        }
-
-        homeState.category != null && homeState.products != null -> {
-            Column(
-                modifier = Modifier.fillMaxSize()
-
-            ) {
-                // Search Box And Notification Icon
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Box(modifier = Modifier.weight(1f)) { SearchBox() }
-                    IconButton(onClick = {
-                        navController.navigate(
-                            Routes.NotificationScreen
-                        )
-                    }) {
-                        Icon(
-                            Icons.Outlined.NotificationAdd, contentDescription = "notification",
-                            tint = Color(0xFFF68B8B),
-                            modifier = Modifier.size(30.dp),
-                        )
-                    }
+        when {
+            homeState.isLoading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
+            }
+
+            homeState.error != null -> {
+                Toast.makeText(context, homeState.error, Toast.LENGTH_SHORT).show()
+            }
+
+            homeState.category != null && homeState.products != null -> {
+
 
                 //Main Body Content LazyColumn
                 LazyColumn(
@@ -151,42 +150,51 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                 ) { category ->
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
-                                        modifier = Modifier.padding(8.dp)
+                                        modifier = Modifier.padding(8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
                                         Box(
                                             modifier = Modifier
                                                 .size(80.dp)
                                                 .clip(CircleShape)
                                                 .background(Color.White, shape = CircleShape)
-                                                .border(1.dp, Color.Gray, shape = CircleShape),
+                                                .border(1.dp, Color.Gray, shape = CircleShape)
+                                                .clickable {
+                                                    navController.navigate(
+                                                        Routes.EachCategoryScreen(
+                                                            categoryName = category.name
+                                                        )
+                                                    )
+                                                },
                                             contentAlignment = Alignment.Center
                                         ) {
                                             if (category.imageUrl.isNotEmpty()) {
-                                                var isLoading by remember { mutableStateOf(true) }
-
                                                 Box(
                                                     modifier = Modifier.fillMaxSize(),
                                                     contentAlignment = Alignment.Center
                                                 ) {
-                                                    AsyncImage(
-                                                        model = ImageRequest.Builder(LocalContext.current)
-                                                            .data(category.imageUrl)
-                                                            .crossfade(true)
-                                                            .build(),
+                                                    SubcomposeAsyncImage(
+                                                        model = category.imageUrl,
                                                         contentDescription = null,
                                                         contentScale = ContentScale.Crop,
                                                         modifier = Modifier.fillMaxSize(),
-                                                        onSuccess = { isLoading = false },
-                                                        onError = { isLoading = false }
-                                                    )
-                                                    if (isLoading) {
-                                                        CircularProgressIndicator(
-                                                            modifier = Modifier
-                                                                .size(20.dp)
-                                                                .align(Alignment.Center),
-                                                            color = Color.Red
+                                                        loading = {
+                                                            Box(
+                                                                modifier = Modifier.fillMaxSize()
+                                                                    .background(Color.LightGray),
+                                                                contentAlignment = Alignment.Center
+                                                            ) {
+                                                                CircularProgressIndicator(
+                                                                    modifier = Modifier
+                                                                        .size(20.dp)
+                                                                        .align(Alignment.Center),
+                                                                    color = Color.Red
+                                                                )
+                                                            }
+                                                        },
+
                                                         )
-                                                    }
+
                                                 }
 
                                             } else {
@@ -200,8 +208,6 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                             }
 
                                         }
-                                        Spacer(modifier = Modifier.height(4.dp))
-
                                         Text(text = category.name)
                                     }
                                 }
@@ -231,39 +237,44 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                                     .size(80.dp)
                                                     .clip(CircleShape)
                                                     .background(Color.White, shape = CircleShape)
-                                                    .border(1.dp, Color.Gray, shape = CircleShape),
+                                                    .border(1.dp, Color.Gray, shape = CircleShape)
+                                                    .clickable {
+                                                        navController.navigate(
+                                                            Routes.EachCategoryScreen(
+                                                                categoryName = category.name
+                                                            )
+                                                        )
+                                                    },
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 if (category.imageUrl.isNotEmpty()) {
-                                                    var isLoading by remember { mutableStateOf(true) }
-
                                                     Box(
                                                         modifier = Modifier.fillMaxSize(),
                                                         contentAlignment = Alignment.Center
                                                     ) {
-                                                        AsyncImage(
-                                                            model = ImageRequest.Builder(
-                                                                LocalContext.current
-                                                            )
-                                                                .data(category.imageUrl)
-                                                                .crossfade(true)
-                                                                .build(),
+                                                        SubcomposeAsyncImage(
+                                                            model = category.imageUrl,
                                                             contentDescription = null,
                                                             contentScale = ContentScale.Crop,
                                                             modifier = Modifier.fillMaxSize(),
-                                                            onSuccess = { isLoading = false },
-                                                            onError = { isLoading = false }
-                                                        )
-                                                        if (isLoading) {
-                                                            CircularProgressIndicator(
-                                                                modifier = Modifier
-                                                                    .size(20.dp)
-                                                                    .align(Alignment.Center),
-                                                                color = Color.Red
-                                                            )
-                                                        }
-                                                    }
+                                                            loading = {
+                                                                Box(
+                                                                    modifier = Modifier.fillMaxSize()
+                                                                        .background(Color.LightGray),
+                                                                    contentAlignment = Alignment.Center,
 
+                                                                ) {
+                                                                    CircularProgressIndicator(
+                                                                        modifier = Modifier
+                                                                            .size(20.dp)
+                                                                            .align(Alignment.Center),
+                                                                        color = Color.Red
+                                                                    )
+                                                                }
+                                                            },
+
+                                                            )
+                                                    }
                                                 } else {
 
                                                     Image(
@@ -273,7 +284,6 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                                         modifier = Modifier.size(24.dp)
                                                     )
                                                 }
-
                                             }
                                             Spacer(modifier = Modifier.height(4.dp))
 
@@ -341,10 +351,8 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                             )
                                     ) {
                                         if (product.image.isNotEmpty()) {
-                                            var isLoading by remember { mutableStateOf(true) }
-
                                             Box(modifier = Modifier.fillMaxSize()) {
-                                                AsyncImage(
+                                                SubcomposeAsyncImage(
                                                     model = ImageRequest.Builder(LocalContext.current)
                                                         .data(product.image)
                                                         .crossfade(true)
@@ -352,17 +360,21 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                                     contentDescription = null,
                                                     contentScale = ContentScale.Crop,
                                                     modifier = Modifier.fillMaxSize(),
-                                                    onSuccess = { isLoading = false },
-                                                    onError = { isLoading = false }
+                                                    loading = {
+                                                        Box(
+                                                            modifier = Modifier.fillMaxSize()
+                                                                .background(Color.LightGray),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            CircularProgressIndicator(
+                                                                modifier = Modifier
+                                                                    .size(50.dp)
+                                                                    .align(Alignment.Center),
+                                                                color = Color.Red
+                                                            )
+                                                        }
+                                                    }
                                                 )
-                                                if (isLoading) {
-                                                    CircularProgressIndicator(
-                                                        modifier = Modifier
-                                                            .size(40.dp)
-                                                            .align(Alignment.Center),
-                                                        color = Color.Red
-                                                    )
-                                                }
                                             }
 
                                         } else {
@@ -390,8 +402,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                         Text(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .weight(0.35f)
-                                                ,
+                                                .weight(0.35f),
                                             text = product.name,
                                             color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color(
                                                 0xFF8C8585
@@ -403,7 +414,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                         )
                                         Column(
                                             Modifier.weight(0.65f)
-                                        ){
+                                        ) {
                                             Text(text = product.category, fontSize = 16.sp)
                                             Row {
                                                 Text(

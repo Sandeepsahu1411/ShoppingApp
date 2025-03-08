@@ -2,7 +2,7 @@ package com.example.shoppinguserapp.ui_layer.navigation
 
 import kotlinx.serialization.Serializable
 
-sealed class SubNavigation{
+sealed class SubNavigation {
     @Serializable
     object MainHomeScreen : SubNavigation()
 
@@ -44,6 +44,12 @@ sealed class Routes {
     data class EachProductDetailScreen(
         val productId: String
     )
+
+    @Serializable
+    data class EachCategoryScreen(
+        val categoryName: String
+    )
+
     @Serializable
     object PaymentSuccessScreen
 
