@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -168,122 +169,121 @@ fun SeeMoreProductScreenUI(
                                 modifier = Modifier.weight(0.5f)
                             )
                         }
-                        OutlinedTextField(
-                            modifier = Modifier.fillMaxWidth(),
+                        SearchBox(
                             value = searchQuery,
-                            onValueChange = { searchQuery = it },
-                            placeholder = { Text(text = "Search", color = Color.LightGray) },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Default.Search, contentDescription = "Search",
-                                    tint = Color(0xFFF68B8B),
-                                    modifier = Modifier.size(30.dp),
-                                )
-                            },
-                            singleLine = true,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = TextFieldDefaults.textFieldColors(
-                                containerColor = Color.Transparent,
-                                focusedIndicatorColor = Color(0xFFF68B8B),
-                                unfocusedIndicatorColor = Color(0xFFF68B8B),
-                            )
+                            onValueChange = { searchQuery = it }
                         )
+                        if (searchQuery.isNotEmpty() && filteredProducts.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No Products Found",
+                                    fontSize = 18.sp,
+                                    color = Color.Red
+                                )
+                            }
+                        } else {
+                            LazyColumn(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                                items(items = filteredProducts) { product ->
 
-                        LazyColumn(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                            itemsIndexed(items = filteredProducts) { index, product ->
-                                Row(horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                    modifier = Modifier.clickable {
-                                        navController.navigate(
-                                            Routes.EachProductDetailScreen(
-                                                productId = product!!.productId
+
+                                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                        modifier = Modifier.clickable {
+                                            navController.navigate(
+                                                Routes.EachProductDetailScreen(
+                                                    productId = product!!.productId
+                                                )
                                             )
-                                        )
-                                    }) {
-                                    if (product?.image?.isNotEmpty()!!) {
-                                     Box(
-                                            modifier = Modifier
-                                                .size(100.dp, 140.dp)
-                                                .clip(RoundedCornerShape(10.dp))
+                                        })
+                                    {
+                                        if (product?.image?.isNotEmpty()!!) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(100.dp, 140.dp)
+                                                    .clip(RoundedCornerShape(10.dp))
 
-                                        ) {
-                                            SubcomposeAsyncImage(
-                                                model =product.image,
+                                            ) {
+                                                SubcomposeAsyncImage(
+                                                    model = product.image,
+                                                    contentDescription = null,
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier = Modifier
+                                                        .fillMaxSize(),
+                                                    loading = {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .fillMaxSize()
+                                                                .background(Color.LightGray)
+                                                        ) {
+                                                            CircularProgressIndicator(
+                                                                modifier = Modifier
+                                                                    .size(40.dp)
+                                                                    .align(Alignment.Center),
+                                                                color = Color.Red
+                                                            )
+                                                        }
+                                                    }
+                                                )
+                                            }
+
+                                        } else {
+                                            Image(
+                                                painter = painterResource(id = R.drawable.product_frock_3),
                                                 contentDescription = null,
                                                 contentScale = ContentScale.Crop,
                                                 modifier = Modifier
                                                     .fillMaxSize(),
-                                                loading = {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .fillMaxSize()
-                                                            .background(Color.LightGray)
-                                                    ) {
-                                                        CircularProgressIndicator(
-                                                            modifier = Modifier
-                                                                .size(40.dp)
-                                                                .align(Alignment.Center),
-                                                            color = Color.Red
-                                                        )
-                                                    }
-                                                }
                                             )
                                         }
-
-                                    } else {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.product_frock_3),
-                                            contentDescription = null,
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier
-                                                .fillMaxSize(),
-                                        )
-                                    }
-                                    Column(
-                                        modifier = Modifier.weight(0.7f),
-                                        verticalArrangement = Arrangement.SpaceAround
-                                    ) {
-                                        Text(
-                                            text = product.name,
-                                            fontSize = 18.sp,
-                                            color = Color(0xFFF68B8B),
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = product.category,
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = "Size : UK10",
-                                            fontSize = 16.sp,
-
-                                            )
-
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Column(
+                                            modifier = Modifier.weight(0.7f),
+                                            verticalArrangement = Arrangement.SpaceAround
+                                        ) {
                                             Text(
-                                                text = "Color : ",
+                                                text = product.name,
+                                                fontSize = 18.sp,
+                                                color = Color(0xFFF68B8B),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = product.category,
                                                 fontSize = 16.sp,
-                                                color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray
+                                                fontWeight = FontWeight.Bold
                                             )
+                                            Text(
+                                                text = "Size : UK10",
+                                                fontSize = 16.sp,
+
+                                                )
+
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Text(
+                                                    text = "Color : ",
+                                                    fontSize = 16.sp,
+                                                    color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray
+                                                )
 
 
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(shape = RoundedCornerShape(5.dp))
-                                                    .size(20.dp)
-                                                    .background(Color.Green)
-                                            )
+                                                Box(
+                                                    modifier = Modifier
+                                                        .clip(shape = RoundedCornerShape(5.dp))
+                                                        .size(20.dp)
+                                                        .background(Color.Green)
+                                                )
+                                            }
                                         }
+
+                                        Text(
+                                            text = "Rs: ${product?.finalPrice}",
+                                            fontSize = 16.sp,
+                                            color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.weight(0.3f)
+
+                                        )
                                     }
-
-                                    Text(
-                                        text = "Rs: ${product?.finalPrice}",
-                                        fontSize = 16.sp,
-                                        color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.weight(0.3f)
-
-                                    )
                                 }
                             }
                         }

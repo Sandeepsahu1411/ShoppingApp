@@ -224,10 +224,10 @@ class Repoimple @Inject constructor(
 
     override fun uploadImage(imageUri: Uri): Flow<ResultState<String>> = callbackFlow {
         trySend(ResultState.Loading)
-        firebaseStorage.reference.child("products/${imageUri.lastPathSegment}")
-            .putFile(imageUri ?: Uri.EMPTY).addOnSuccessListener {
-                it.storage.downloadUrl.addOnSuccessListener {
-                    trySend(ResultState.Success(it.toString()))
+        firebaseStorage.reference.child("userProfile/${imageUri.lastPathSegment}")
+            .putFile(imageUri).addOnSuccessListener {
+                it.storage.downloadUrl.addOnSuccessListener {uri ->
+                    trySend(ResultState.Success(uri.toString()))
                 }
             }.addOnFailureListener {
                 trySend(ResultState.Error(it))

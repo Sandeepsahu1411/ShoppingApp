@@ -72,6 +72,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
     val context = LocalContext.current
     val homeState by viewModel.homeScreenState.collectAsStateWithLifecycle()
     var seeAllCategory by remember { mutableStateOf(false) }
+    var search by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -83,7 +84,10 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Box(modifier = Modifier.weight(1f)) { SearchBox() }
+
+            Box(modifier = Modifier.weight(1f)) {
+                SearchBox(value = search, onValueChange = { search = it })
+            }
             IconButton(onClick = {
                 navController.navigate(
                     Routes.NotificationScreen
@@ -108,8 +112,6 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
             }
 
             homeState.category != null && homeState.products != null -> {
-
-
                 //Main Body Content LazyColumn
                 LazyColumn(
                     modifier = Modifier
@@ -165,8 +167,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                                             categoryName = category.name
                                                         )
                                                     )
-                                                },
-                                            contentAlignment = Alignment.Center
+                                                }, contentAlignment = Alignment.Center
                                         ) {
                                             if (category.imageUrl.isNotEmpty()) {
                                                 Box(
@@ -180,8 +181,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                                         modifier = Modifier.fillMaxSize(),
                                                         loading = {
                                                             Box(
-                                                                modifier = Modifier.fillMaxSize()
-                                                                    .background(Color.LightGray),
+                                                                modifier = Modifier.fillMaxSize(),
                                                                 contentAlignment = Alignment.Center
                                                             ) {
                                                                 CircularProgressIndicator(
@@ -244,8 +244,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                                                 categoryName = category.name
                                                             )
                                                         )
-                                                    },
-                                                contentAlignment = Alignment.Center
+                                                    }, contentAlignment = Alignment.Center
                                             ) {
                                                 if (category.imageUrl.isNotEmpty()) {
                                                     Box(
@@ -259,11 +258,10 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                                             modifier = Modifier.fillMaxSize(),
                                                             loading = {
                                                                 Box(
-                                                                    modifier = Modifier.fillMaxSize()
-                                                                        .background(Color.LightGray),
+                                                                    modifier = Modifier.fillMaxSize(),
                                                                     contentAlignment = Alignment.Center,
 
-                                                                ) {
+                                                                    ) {
                                                                     CircularProgressIndicator(
                                                                         modifier = Modifier
                                                                             .size(20.dp)
@@ -326,9 +324,8 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                             contentPadding = PaddingValues(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            items(
-                                homeState.products?.take(6) ?: emptyList()
-                            ) { product ->
+                            items(homeState.products?.filter { it.category == "Gown" || it.category == "Top" || it.category == "Dress" }
+                                ?.take(8) ?: emptyList()) { product ->
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -352,18 +349,15 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                     ) {
                                         if (product.image.isNotEmpty()) {
                                             Box(modifier = Modifier.fillMaxSize()) {
-                                                SubcomposeAsyncImage(
-                                                    model = ImageRequest.Builder(LocalContext.current)
-                                                        .data(product.image)
-                                                        .crossfade(true)
-                                                        .build(),
+                                                SubcomposeAsyncImage(model = ImageRequest.Builder(
+                                                    LocalContext.current
+                                                ).data(product.image).crossfade(true).build(),
                                                     contentDescription = null,
                                                     contentScale = ContentScale.Crop,
                                                     modifier = Modifier.fillMaxSize(),
                                                     loading = {
                                                         Box(
-                                                            modifier = Modifier.fillMaxSize()
-                                                                .background(Color.LightGray),
+                                                            modifier = Modifier.fillMaxSize(),
                                                             contentAlignment = Alignment.Center
                                                         ) {
                                                             CircularProgressIndicator(
@@ -373,8 +367,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                                                 color = Color.Red
                                                             )
                                                         }
-                                                    }
-                                                )
+                                                    })
                                             }
 
                                         } else {

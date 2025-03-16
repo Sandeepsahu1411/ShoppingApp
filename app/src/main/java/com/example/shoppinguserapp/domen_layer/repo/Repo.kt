@@ -17,6 +17,7 @@ interface Repo {
 
     fun getUserDetails(userId: String): Flow<ResultState<UserData>>
     fun updateUserDetails(userId: String, userData: UserData): Flow<ResultState<String>>
+    fun uploadImage(imageUri: Uri): Flow<ResultState<String>>
 
     fun getCategories(): Flow<ResultState<List<Category>>>
     fun getProducts(): Flow<ResultState<List<Products>>>
@@ -26,7 +27,6 @@ interface Repo {
     fun checkWishlistRepo(productId: String): Flow<ResultState<Boolean>>
     fun getWishListRepo(): Flow<ResultState<List<Products>>>
 
-    fun uploadImage(imageUri: Uri): Flow<ResultState<String>>
 
     fun productCartRepo(cartModel: CartModel): Flow<ResultState<String>>
     fun checkProductCartRepo(productId: String): Flow<ResultState<Boolean>>

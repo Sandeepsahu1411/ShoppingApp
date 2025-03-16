@@ -320,13 +320,15 @@ fun CartHeaderRow() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBox(modifier: Modifier = Modifier) {
-    var search by remember { mutableStateOf("") }
+fun SearchBox(
+    value: String,
+    onValueChange: (String) -> Unit
+) {
     OutlinedTextField(
         modifier = Modifier.fillMaxWidth(),
-        value = search,
-        onValueChange = { search = it },
-        placeholder = { Text(text = "Search", color = Color.LightGray) },
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = { Text(text = "Search", color = Color.Gray) },
         leadingIcon = {
             Icon(
                 Icons.Default.Search, contentDescription = "Search",
@@ -334,7 +336,6 @@ fun SearchBox(modifier: Modifier = Modifier) {
                 modifier = Modifier.size(30.dp),
             )
         },
-//        modifier = Modifier.weight(1f),
         singleLine = true,
         shape = RoundedCornerShape(12.dp),
         colors = TextFieldDefaults.textFieldColors(

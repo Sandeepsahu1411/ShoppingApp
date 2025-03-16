@@ -349,7 +349,6 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
         _addWishListState.value = WishListState()
         _checkWishlistState.value = CheckWishlistState()
         _getWishListState.value = GetWishListState()
-
     }
 
     fun uploadImage(imageUri: Uri) {
@@ -369,10 +368,8 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
                             ImageUploadState(error = it.exception.message.toString())
                     }
                 }
-
             }
         }
-
     }
 
     fun addProductCart(cartModel: CartModel) {
