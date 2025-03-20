@@ -99,5 +99,5 @@ Redirects them to the Login Screen.
 
 ## 📞 Contact
 For queries, feel free to reach out:
-📧 Email: [your-email@example.com](mailto:sahusandeep26475@gmail.com)
+📧 Email: [sahusandeep26475@gmail.com](mailto:sahusandeep26475@gmail.com)
 
