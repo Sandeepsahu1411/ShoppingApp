@@ -1,8 +1,6 @@
 package com.example.shoppinguserapp.domen_layer.data_model
 
-import android.R.attr.category
-import android.R.attr.description
-import android.R.attr.name
+
 
 
 data class Products(

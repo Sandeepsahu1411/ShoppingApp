@@ -23,14 +23,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -368,11 +373,107 @@ fun ProfileScreenUI(
                                 inclusive = true
                             }
                         }
-                    })
+                    },
+                    imageUrl = imageUrl)
             }
 
         }
     }
 
 
+}
+
+@Composable
+fun LogoutDialog(
+    showDialog: Boolean, onDismiss: () -> Unit, onLogout: () -> Unit, imageUrl: String
+) {
+    if (showDialog) {
+        Box(
+            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+        ) {
+            AlertDialog(onDismissRequest = onDismiss, confirmButton = {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
+                        border = BorderStroke(1.dp, Color.Red)
+                    ) {
+                        Text(text = "Cancel", fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(
+                        onClick = onLogout,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFF68B8B)
+                        )
+                    ) {
+                        Text(
+                            text = "Log Out", fontWeight = FontWeight.Bold, color = Color.White
+                        )
+                    }
+                }
+            }, title = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    SubcomposeAsyncImage(
+                        model =
+                        if (imageUrl.isNotEmpty()) imageUrl else R.drawable.default_profile,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .border(4.dp, Color(0xFFF68B8B), CircleShape)
+                            .size(130.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop,
+                        loading = {
+                            Box(
+                                Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(40.dp),
+                                    color = Color(0xFFF68B8B)
+                                )
+                            }
+                        })
+//                    Image(
+//                        painter = painterResource(id = R.drawable.fake_profile),
+//                        contentDescription = null,
+//                        modifier = Modifier
+//                            .size(130.dp)
+//                            .clip(CircleShape)
+//                            .border(4.dp, Color(0xFFF68B8B), CircleShape)
+//
+//                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "LOG OUT",
+                        color = Color(0xFFF68B8B),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
+            }, text = {
+                Text(
+                    text = "Do you Really Want To Logout!",
+                    textAlign = TextAlign.Center,
+                    color = if (isSystemInDarkTheme()) Color(0xFFEFCECE) else Color.DarkGray,
+                    fontSize = 16.sp,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }, shape = RoundedCornerShape(20.dp)
+
+            )
+        }
+    }
 }

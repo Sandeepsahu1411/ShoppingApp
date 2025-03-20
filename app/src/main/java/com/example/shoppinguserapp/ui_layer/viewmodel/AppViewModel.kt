@@ -8,6 +8,7 @@ import com.example.shoppinguserapp.common.ResultState
 import com.example.shoppinguserapp.domen_layer.data_model.CartModel
 import com.example.shoppinguserapp.domen_layer.data_model.Category
 import com.example.shoppinguserapp.domen_layer.data_model.Products
+import com.example.shoppinguserapp.domen_layer.data_model.ShippingModel
 import com.example.shoppinguserapp.domen_layer.data_model.UserData
 import com.example.shoppinguserapp.domen_layer.use_case.UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -55,6 +56,8 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
     private val _getWishListState = MutableStateFlow(GetWishListState())
     val getWishlistState = _getWishListState.asStateFlow()
 
+    private val _deleteWishListState = MutableStateFlow(DeleteWishListState())
+
     private val _uploadImageState = MutableStateFlow(ImageUploadState())
     val uploadImageState = _uploadImageState.asStateFlow()
 
@@ -69,9 +72,14 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
     private val _updateProductCartState = MutableStateFlow(UpdateProductCartState())
 
-
     private val _deleteProductCartState = MutableStateFlow(DeleteProductCartState())
     val deleteProductCartState = _deleteProductCartState.asStateFlow()
+
+    private val _addShippingState = MutableStateFlow(AddShippingState())
+    val addShippingState = _addShippingState.asStateFlow()
+
+    private val _getShippingState = MutableStateFlow(GetShippingState())
+    val getShippingState = _getShippingState.asStateFlow()
 
 
     fun registerUser(userData: UserData) {
@@ -351,6 +359,31 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
         _getWishListState.value = GetWishListState()
     }
 
+    fun deleteWishListModel(productId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.deleteWishListUseCase(productId).collectLatest {
+                when (it) {
+                    is ResultState.Loading -> {
+                        _deleteWishListState.value = DeleteWishListState(isLoading = true)
+                    }
+
+                    is ResultState.Success -> {
+                        _deleteWishListState.value = DeleteWishListState(success = it.data)
+                    }
+
+                    is ResultState.Error -> {
+                        _deleteWishListState.value =
+                            DeleteWishListState(error = it.exception.message.toString())
+                    }
+                }
+
+            }
+
+        }
+
+    }
+
+
     fun uploadImage(imageUri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
             useCase.uploadImageUseCase(imageUri).collectLatest {
@@ -481,6 +514,47 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
     }
 
+    fun addShipping(shippingModel: ShippingModel) {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.addShippingUseCase(shippingModel).collectLatest {
+                when (it) {
+                    is ResultState.Loading -> {
+                        _addShippingState.value = AddShippingState(isLoading = true)
+                    }
+
+                    is ResultState.Success -> {
+                        _addShippingState.value = AddShippingState(success = it.data)
+                    }
+
+                    is ResultState.Error -> {
+                        _addShippingState.value =
+                            AddShippingState(error = it.exception.message.toString())
+                    }
+                }
+            }
+        }
+    }
+
+    fun getShipping() {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.getShippingUseCase().collectLatest {
+                when (it) {
+                    is ResultState.Loading -> {
+                        _getShippingState.value = GetShippingState(isLoading = true)
+                    }
+
+                    is ResultState.Success -> {
+                        _getShippingState.value = GetShippingState(success = it.data)
+                    }
+
+                    is ResultState.Error -> {
+                        _getShippingState.value =
+                            GetShippingState(error = it.exception.message.toString())
+                    }
+                }
+            }
+        }
+    }
 
 }
 
@@ -506,46 +580,32 @@ data class HomeScreenState(
 )
 
 data class RegisterUserState(
-    val isLoading: Boolean = false,
-    var success: String? = null,
-    var error: String? = null
+    val isLoading: Boolean = false, var success: String? = null, var error: String? = null
 )
 
 data class LoginUserState(
-    val isLoading: Boolean = false,
-    var success: String? = null,
-    var error: String? = null
+    val isLoading: Boolean = false, var success: String? = null, var error: String? = null
 )
 
 data class GetProductsByIdState(
-    val isLoading: Boolean = false,
-    val success: Products? = null,
-    val error: String = ""
+    val isLoading: Boolean = false, val success: Products? = null, val error: String = ""
 )
 
 data class GetUserDetailsState(
-    val isLoading: Boolean = false,
-    val success: UserData? = null,
-    val error: String = ""
+    val isLoading: Boolean = false, val success: UserData? = null, val error: String = ""
 )
 
 data class UpdateUserDetailsState(
-    val isLoading: Boolean = false,
-    var success: String? = null,
-    val error: String = ""
+    val isLoading: Boolean = false, var success: String? = null, val error: String = ""
 )
 
 data class WishListState(
-    val isLoading: Boolean = false,
-    var success: String? = null,
-    var error: String = ""
+    val isLoading: Boolean = false, var success: String? = null, var error: String = ""
 
 )
 
 data class CheckWishlistState(
-    val isLoading: Boolean = false,
-    val success: Boolean = false,
-    val error: String = ""
+    val isLoading: Boolean = false, val success: Boolean = false, val error: String = ""
 )
 
 data class GetWishListState(
@@ -554,38 +614,42 @@ data class GetWishListState(
     val error: String = ""
 )
 
+data class DeleteWishListState(
+    val isLoading: Boolean = false, var success: String? = null, var error: String = ""
+)
+
 data class ImageUploadState(
-    val isLoading: Boolean = false,
-    var success: String? = null,
-    var error: String? = null
+    val isLoading: Boolean = false, var success: String? = null, var error: String? = null
 )
 
 data class AddToCartState(
-    val isLoading: Boolean = false,
-    var success: String? = null,
-    var error: String? = null
+    val isLoading: Boolean = false, var success: String? = null, var error: String? = null
 )
 
 data class CheckProductCartState(
-    val isLoading: Boolean = false,
-    val success: Boolean = false,
-    val error: String = ""
+    val isLoading: Boolean = false, val success: Boolean = false, val error: String = ""
 )
 
 data class GetProductsCartState(
     val isLoading: Boolean = false,
-    val success: List<CartModel> = emptyList(),
+    var success: List<CartModel> = emptyList(),
     val error: String? = null
 )
 
 data class UpdateProductCartState(
-    val isLoading: Boolean = false,
-    var success: String? = null,
-    var error: String? = null
+    val isLoading: Boolean = false, var success: String? = null, var error: String? = null
 )
 
 data class DeleteProductCartState(
+    val isLoading: Boolean = false, var success: String? = null, var error: String? = null
+)
+
+data class AddShippingState(
+    val isLoading: Boolean = false, var success: String? = null, var error: String? = null
+)
+
+data class GetShippingState(
     val isLoading: Boolean = false,
-    var success: String? = null,
-    var error: String? = null
+    val success: ShippingModel? = null,
+    val error: String = ""
 )

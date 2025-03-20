@@ -1,12 +1,10 @@
 package com.example.shoppinguserapp.ui_layer.screens
 
-import android.R.attr.fontStyle
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import com.example.shoppinguserapp.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,7 +13,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,14 +48,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -69,7 +67,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import com.example.shoppinguserapp.R
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,6 +85,7 @@ fun CustomOutlinedTextField(
     onlyNumbers: Boolean = false
 
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
     var passwordVisibility by remember { mutableStateOf(false) }
     OutlinedTextField(
         value = value,
@@ -99,7 +98,7 @@ fun CustomOutlinedTextField(
             Text(
                 text = placeholderText,
                 color = if (isSystemInDarkTheme()) Color(0xFFEFCECE) else Color.Gray,
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodyMedium
             )
         },
         modifier = modifier.height(60.dp),
@@ -134,6 +133,7 @@ fun CustomOutlinedTextField(
         ),
         keyboardActions = KeyboardActions(
             onDone = {
+                keyboardController?.hide()
                 onImeAction?.invoke()
             },
             onGo = { onImeAction?.invoke() }
@@ -211,81 +211,7 @@ fun SuccessDialog(showDialog: Boolean, onDismiss: () -> Unit) {
     }
 }
 
-@Composable
-fun LogoutDialog(
-    showDialog: Boolean, onDismiss: () -> Unit, onLogout: () -> Unit
-) {
-    if (showDialog) {
-        Box(
-            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-        ) {
-            AlertDialog(onDismissRequest = onDismiss, confirmButton = {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
-                        border = BorderStroke(1.dp, Color.Red)
-                    ) {
-                        Text(text = "Cancel", fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Button(
-                        onClick = onLogout,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFF68B8B)
-                        )
-                    ) {
-                        Text(
-                            text = "Log Out", fontWeight = FontWeight.Bold, color = Color.White
-                        )
-                    }
-                }
-            }, title = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // Profile image
-                    Image(
-                        painter = painterResource(id = R.drawable.fake_profile),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(130.dp)
-                            .clip(CircleShape)
-                            .border(4.dp, Color(0xFFF68B8B), CircleShape)
 
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "LOG OUT",
-                        color = Color(0xFFF68B8B),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                }
-            }, text = {
-                Text(
-                    text = "Do you Really Want To Logout!",
-                    textAlign = TextAlign.Center,
-                    color = if (isSystemInDarkTheme()) Color(0xFFEFCECE) else Color.DarkGray,
-                    fontSize = 16.sp,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }, shape = RoundedCornerShape(20.dp)
-
-            )
-        }
-    }
-}
 
 @Composable
 fun animation(): Float {

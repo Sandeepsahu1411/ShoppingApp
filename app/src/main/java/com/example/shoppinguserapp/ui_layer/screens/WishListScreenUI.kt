@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
@@ -107,7 +108,7 @@ fun WishListScreenUI(
                 ) {
                     items(getWishlistState.value.success){
                         product ->
-                        WishlistItem(navController,product = product)
+                        WishlistItem(navController,product = product,viewModel)
                     }
 
                 }
@@ -117,8 +118,7 @@ fun WishListScreenUI(
 }
 
 @Composable
-fun WishlistItem(navController: NavController,product: Products) {
-
+fun WishlistItem(navController: NavController,product: Products,viewModel: AppViewModel) {
 
     Card(
         modifier = Modifier
@@ -191,7 +191,9 @@ fun WishlistItem(navController: NavController,product: Products) {
             }
 
             IconButton(onClick = {
-
+                viewModel.deleteWishListModel(product.productId)
+                viewModel.resetWishlistState()
+                navController.navigate(Routes.WishListScreen)
 
             }) {
                 Icon(

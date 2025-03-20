@@ -1,5 +1,6 @@
 package com.example.shoppinguserapp.ui_layer.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,12 +24,14 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,17 +39,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
+import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
 
 @Composable
-fun PaymentScreenUI(navController: NavController) {
+fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hiltViewModel()) {
+
+    val getCartState = viewModel.getCartState.collectAsStateWithLifecycle()
+    val getCartData = getCartState.value.success
+
+    LaunchedEffect(Unit) {
+        viewModel.getProductsCart()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxHeight()
@@ -62,7 +77,7 @@ fun PaymentScreenUI(navController: NavController) {
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             modifier = Modifier.clickable {
-                navController.navigate(Routes.CartScreen)
+                navController.navigateUp()
             })
         {
             Icon(
@@ -72,50 +87,65 @@ fun PaymentScreenUI(navController: NavController) {
             )
             Text(
                 text = "Return to Shipping",
-                color = if (isSystemInDarkTheme()) Color( 0xFFF68B8B) else Color.Gray,
+                color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
         }
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            item {
-                ProductDetail()
+        when {
+            getCartState.value.isLoading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             }
-            item {
-                var selectedMethod by remember { mutableStateOf("Free") }
-                PaymentMethod(
-                    selectedMethod = selectedMethod,
-                    onMethodSelected = { selectedMethod = it })
+
+            getCartState.value.error != null -> {
+                Toast.makeText(LocalContext.current, getCartState.value.error, Toast.LENGTH_SHORT)
+                    .show()
             }
-            item {
-                var selectedAddress by remember { mutableStateOf("Same") }
-                BillingAddress(
-                    selectedMethod = selectedAddress,
-                    onMethodSelected = { selectedAddress = it })
-            }
-            item {
-                Button(
-                    onClick = {
-                        navController.navigate(Routes.PaymentSuccessScreen)
-                    },
+
+            getCartState.value.success.isNotEmpty() -> {
+                LazyColumn(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 15.dp),
-                    shape = RoundedCornerShape(15.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF8c8585), contentColor = Color.White
-                    )
+                        .fillMaxSize()
+                        .padding(vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text(
-                        text = "Pay Now",
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(vertical = 5.dp)
-                    )
+                    item {
+                        CartProductDetail(getCartData)
+                    }
+                    item {
+                        var selectedMethod by remember { mutableStateOf("Free") }
+                        PaymentMethod(
+                            selectedMethod = selectedMethod,
+                            onMethodSelected = { selectedMethod = it })
+                    }
+                    item {
+                        var selectedAddress by remember { mutableStateOf("Same") }
+                        BillingAddress(
+                            selectedMethod = selectedAddress,
+                            onMethodSelected = { selectedAddress = it })
+                    }
+                    item {
+                        Button(
+                            onClick = {
+                                navController.navigate(Routes.PaymentSuccessScreen)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 15.dp),
+                            shape = RoundedCornerShape(15.dp),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF8c8585), contentColor = Color.White
+                            )
+                        ) {
+                            Text(
+                                text = "Pay Now",
+                                fontSize = 20.sp,
+                                modifier = Modifier.padding(vertical = 5.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -191,8 +221,7 @@ fun PaymentMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
                     modifier = Modifier
                         .padding(5.dp), colors = CardDefaults.cardColors(
                         containerColor =
-                         if (isSystemInDarkTheme()) Color(0x7EF5F2F1) else Color(0xFFF5F2F1),
-
+                        if (isSystemInDarkTheme()) Color(0x7EF5F2F1) else Color(0xFFF5F2F1),
 
 
                         )

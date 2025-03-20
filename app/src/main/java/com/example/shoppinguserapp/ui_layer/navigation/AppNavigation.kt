@@ -12,12 +12,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.navigation.toRoute
 import com.example.shoppinguserapp.ui_layer.screens.CartScreenUI
 import com.example.shoppinguserapp.ui_layer.screens.EachCategoryScreenUI
@@ -32,6 +34,7 @@ import com.example.shoppinguserapp.ui_layer.screens.ShippingScreenUI
 import com.example.shoppinguserapp.ui_layer.screens.SignInScreenUI
 import com.example.shoppinguserapp.ui_layer.screens.SignUpScreenUI
 import com.example.shoppinguserapp.ui_layer.screens.WishListScreenUI
+import com.google.android.play.integrity.internal.s
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -58,6 +61,15 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
         shouldShowBottomBar.value = when (currentDestination) {
             Routes.SignInScreen::class.qualifiedName, Routes.SignUpScreen::class.qualifiedName -> false
             else -> true
+        }
+        selectedItemIndex =when(currentDestination){
+            Routes.HomeScreen::class.qualifiedName -> 0
+            Routes.WishListScreen::class.qualifiedName -> 1
+            Routes.CartScreen::class.qualifiedName -> 2
+            Routes.ShippingScreen::class.qualifiedName -> 2
+            Routes.PaymentScreen::class.qualifiedName -> 2
+            Routes.ProfileScreen::class.qualifiedName -> 3
+            else -> 0
         }
     }
 
@@ -103,13 +115,10 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
                         EachProductDetailScreenUI(
                             navController = navController,
                             productId = productId.toString(),
-                            firebaseAuth = firebaseAuth
-
                         )
                     }
                     composable<Routes.EachCategoryScreen> {
                         val categoryName = it.arguments?.getString("categoryName")
-//                        val data = it.toRoute<Routes.EachCategoryScreen>()
                         EachCategoryScreenUI(navController, categoryName.toString())
                     }
                     composable<Routes.WishListScreen> {
@@ -129,8 +138,20 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
                         SeeMoreProductScreenUI(navController = navController)
                     }
                     composable<Routes.ShippingScreen> {
-                        ShippingScreenUI(navController = navController)
+                        val data = it.toRoute<Routes.ShippingScreen>()
+                        val productId = it.arguments?.getString("productId")
+                        val productSize = it.arguments?.getString("productSize")
+                        val productColor = it.arguments?.getString("productColor")
+                        val productQty = it.arguments?.getString("productQty")
+                        ShippingScreenUI(
+                            navController = navController,
+                            productId.toString(),
+                            productSize.toString(),
+                            productColor.toString(),
+                            productQty.toString()
+                        )
                     }
+
                     composable<Routes.PaymentScreen> {
                         PaymentScreenUI(navController)
                     }

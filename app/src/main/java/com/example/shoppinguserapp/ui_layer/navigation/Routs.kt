@@ -13,48 +13,51 @@ sealed class SubNavigation {
 sealed class Routes {
 
     @Serializable
-    object SignInScreen
+    object SignInScreen : Routes()
 
     @Serializable
-    object SignUpScreen
+    object SignUpScreen : Routes()
 
     @Serializable
-    object HomeScreen
+    object HomeScreen : Routes()
 
     @Serializable
-    object ProfileScreen
+    object ProfileScreen : Routes()
 
     @Serializable
-    object CartScreen
+    object CartScreen : Routes()
 
     @Serializable
-    object WishListScreen
+    object WishListScreen : Routes()
 
     @Serializable
-    object ShippingScreen
+    data class ShippingScreen(
+        val productId : String,
+        val productSize : String,
+        val productColor : String,
+        val productQty : String
+    ) : Routes()
 
     @Serializable
-    object PaymentScreen
+    object PaymentScreen : Routes()
 
     @Serializable
-    object SeeMoreProductsScreen
+    object SeeMoreProductsScreen : Routes()
 
 
     @Serializable
     data class EachProductDetailScreen(
         val productId: String
-    )
+    ) : Routes()
 
     @Serializable
     data class EachCategoryScreen(
         val categoryName: String
-    )
+    ) : Routes()
 
     @Serializable
-    object PaymentSuccessScreen
+    object PaymentSuccessScreen : Routes()
 
     @Serializable
-    object NotificationScreen
-
-
+    object NotificationScreen : Routes()
 }

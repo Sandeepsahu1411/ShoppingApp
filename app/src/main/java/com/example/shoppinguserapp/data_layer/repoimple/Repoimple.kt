@@ -6,12 +6,14 @@ import com.example.shoppinguserapp.common.ADD_TO_CART_BY_USER
 import com.example.shoppinguserapp.common.CATEGORY
 import com.example.shoppinguserapp.common.PRODUCTS
 import com.example.shoppinguserapp.common.ResultState
+import com.example.shoppinguserapp.common.SHIPPING
 import com.example.shoppinguserapp.common.USERS
 import com.example.shoppinguserapp.common.WISHLIST
 import com.example.shoppinguserapp.common.WISHLIST_BY_USER
 import com.example.shoppinguserapp.domen_layer.data_model.CartModel
 import com.example.shoppinguserapp.domen_layer.data_model.Category
 import com.example.shoppinguserapp.domen_layer.data_model.Products
+import com.example.shoppinguserapp.domen_layer.data_model.ShippingModel
 import com.example.shoppinguserapp.domen_layer.data_model.UserData
 import com.example.shoppinguserapp.domen_layer.repo.Repo
 import com.google.firebase.auth.FirebaseAuth
@@ -184,8 +186,8 @@ class Repoimple @Inject constructor(
 
     override fun checkWishlistRepo(productId: String): Flow<ResultState<Boolean>> = callbackFlow {
         trySend(ResultState.Loading)
-        firebaseFireStore.collection(WISHLIST)
-            .document(firebaseAuth.currentUser?.uid.toString()).collection(
+        firebaseFireStore.collection(WISHLIST).document(firebaseAuth.currentUser?.uid.toString())
+            .collection(
                 WISHLIST_BY_USER
             ).whereEqualTo("productId", productId).get().addOnSuccessListener {
                 if (it.documents.isNotEmpty()) {
@@ -222,11 +224,38 @@ class Repoimple @Inject constructor(
 
     }
 
+    override fun deleteWishListRepo(productId: String): Flow<ResultState<String>> = callbackFlow {
+        trySend(ResultState.Loading)
+        firebaseFireStore.collection(WISHLIST).document(firebaseAuth.currentUser?.uid.toString())
+            .collection(
+                WISHLIST_BY_USER
+            ).whereEqualTo("productId", productId).get().addOnSuccessListener {
+                if (it.documents.isNotEmpty()) {
+                    firebaseFireStore.collection(WISHLIST)
+                        .document(firebaseAuth.currentUser?.uid.toString()).collection(
+                            WISHLIST_BY_USER
+                        ).document(it.documents[0].id).delete().addOnSuccessListener {
+                            trySend(ResultState.Success("Removed to Wishlist"))
+                            close()
+                        }.addOnFailureListener {
+                            trySend(ResultState.Error(it))
+                            close()
+                        }
+                }
+            }
+        awaitClose {
+            close()
+        }
+
+
+    }
+
     override fun uploadImage(imageUri: Uri): Flow<ResultState<String>> = callbackFlow {
         trySend(ResultState.Loading)
         firebaseStorage.reference.child("userProfile/${imageUri.lastPathSegment}")
-            .putFile(imageUri).addOnSuccessListener {
-                it.storage.downloadUrl.addOnSuccessListener {uri ->
+            .putFile(imageUri)
+            .addOnSuccessListener {
+                it.storage.downloadUrl.addOnSuccessListener { uri ->
                     trySend(ResultState.Success(uri.toString()))
                 }
             }.addOnFailureListener {
@@ -240,53 +269,57 @@ class Repoimple @Inject constructor(
 
     }
 
-    override fun productCartRepo(cartModel: CartModel): Flow<ResultState<String>> = callbackFlow {
-        trySend(ResultState.Loading)
-        firebaseFireStore.collection(ADD_TO_CART).document(firebaseAuth.currentUser?.uid.toString())
-            .collection(
-                ADD_TO_CART_BY_USER
-            ).whereEqualTo("productId", cartModel.productId).get().addOnSuccessListener {
-                if (it.documents.isNotEmpty()) {
-                    firebaseFireStore.collection(ADD_TO_CART)
-                        .document(firebaseAuth.currentUser?.uid.toString())
-                        .collection(ADD_TO_CART_BY_USER).document(it.documents[0].id).delete()
-                        .addOnSuccessListener {
-                            trySend(ResultState.Success("Removed from Cart"))
-                            close()
-                        }.addOnFailureListener {
-                            trySend(ResultState.Error(it))
-                            close()
-                        }
-                    return@addOnSuccessListener
+    override fun productCartRepo(cartModel: CartModel): Flow<ResultState<String>> =
+        callbackFlow {
+            trySend(ResultState.Loading)
+            firebaseFireStore.collection(ADD_TO_CART)
+                .document(firebaseAuth.currentUser?.uid.toString())
+                .collection(
+                    ADD_TO_CART_BY_USER
+                ).whereEqualTo("productId", cartModel.productId).get().addOnSuccessListener {
+                    if (it.documents.isNotEmpty()) {
+                        firebaseFireStore.collection(ADD_TO_CART)
+                            .document(firebaseAuth.currentUser?.uid.toString())
+                            .collection(ADD_TO_CART_BY_USER).document(it.documents[0].id)
+                            .delete()
+                            .addOnSuccessListener {
+                                trySend(ResultState.Success("Removed from Cart"))
+                                close()
+                            }.addOnFailureListener {
+                                trySend(ResultState.Error(it))
+                                close()
+                            }
+                        return@addOnSuccessListener
 
-                } else {
-                    firebaseFireStore.collection(ADD_TO_CART)
-                        .document(firebaseAuth.currentUser?.uid.toString())
-                        .collection(ADD_TO_CART_BY_USER).document().set(cartModel)
-                        .addOnSuccessListener {
-                            trySend(ResultState.Success("Added to Cart"))
-                            close()
-                        }.addOnFailureListener {
-                            trySend(ResultState.Error(it))
-                            close()
-                        }
+                    } else {
+                        firebaseFireStore.collection(ADD_TO_CART)
+                            .document(firebaseAuth.currentUser?.uid.toString())
+                            .collection(ADD_TO_CART_BY_USER).document().set(cartModel)
+                            .addOnSuccessListener {
+                                trySend(ResultState.Success("Added to Cart"))
+                                close()
+                            }.addOnFailureListener {
+                                trySend(ResultState.Error(it))
+                                close()
+                            }
+                    }
+                }.addOnFailureListener {
+                    trySend(ResultState.Error(it))
+                    return@addOnFailureListener
                 }
-            }.addOnFailureListener {
-                trySend(ResultState.Error(it))
-                return@addOnFailureListener
+
+            awaitClose {
+                close()
             }
 
-        awaitClose {
-            close()
         }
-
-    }
 
     override fun checkProductCartRepo(productId: String): Flow<ResultState<Boolean>> =
         callbackFlow {
             trySend(ResultState.Loading)
             firebaseFireStore.collection(ADD_TO_CART)
-                .document(firebaseAuth.currentUser?.uid.toString()).collection(ADD_TO_CART_BY_USER)
+                .document(firebaseAuth.currentUser?.uid.toString())
+                .collection(ADD_TO_CART_BY_USER)
                 .whereEqualTo("productId", productId).get().addOnSuccessListener {
                     if (it.documents.isNotEmpty()) {
                         trySend(ResultState.Success(true))
@@ -305,7 +338,8 @@ class Repoimple @Inject constructor(
 
     override fun getProductsCartRepo(): Flow<ResultState<List<CartModel>>> = callbackFlow {
         trySend(ResultState.Loading)
-        firebaseFireStore.collection(ADD_TO_CART).document(firebaseAuth.currentUser?.uid.toString())
+        firebaseFireStore.collection(ADD_TO_CART)
+            .document(firebaseAuth.currentUser?.uid.toString())
             .collection(ADD_TO_CART_BY_USER).get().addOnSuccessListener {
                 val data = it.documents.mapNotNull {
                     it.toObject(CartModel::class.java)
@@ -327,12 +361,13 @@ class Repoimple @Inject constructor(
             trySend(ResultState.Loading)
             firebaseFireStore.collection(ADD_TO_CART)
                 .document(firebaseAuth.currentUser?.uid.toString())
-                .collection(ADD_TO_CART_BY_USER).whereEqualTo("productId", productId).get()
-                .addOnSuccessListener {
+                .collection(ADD_TO_CART_BY_USER)
+                .whereEqualTo("productId", productId).get().addOnSuccessListener {
                     if (it.documents.isNotEmpty()) {
                         firebaseFireStore.collection(ADD_TO_CART)
                             .document(firebaseAuth.currentUser?.uid.toString())
-                            .collection(ADD_TO_CART_BY_USER).document(it.documents[0].id).delete()
+                            .collection(ADD_TO_CART_BY_USER).document(it.documents[0].id)
+                            .delete()
                             .addOnSuccessListener {
                                 trySend(ResultState.Success("Removed from Cart"))
                                 close()
@@ -343,8 +378,7 @@ class Repoimple @Inject constructor(
         }
 
     override fun updateProductCartRepo(
-        productId: String,
-        newQty: Int
+        productId: String, newQty: Int
     ): Flow<ResultState<String>> = callbackFlow {
         trySend(ResultState.Loading)
 
@@ -352,23 +386,17 @@ class Repoimple @Inject constructor(
 
         firebaseFireStore.collection(ADD_TO_CART).document(userId)
             .collection(ADD_TO_CART_BY_USER)
-            .whereEqualTo("productId", productId)
-            .get()
-            .addOnSuccessListener { documents ->
+            .whereEqualTo("productId", productId).get().addOnSuccessListener { documents ->
                 if (documents.documents.isNotEmpty()) {
                     val docId = documents.documents[0].id
 
 
-                    firebaseFireStore.collection(ADD_TO_CART)
-                        .document(userId)
-                        .collection(ADD_TO_CART_BY_USER)
-                        .document(docId)
-                        .update("qty", newQty)
+                    firebaseFireStore.collection(ADD_TO_CART).document(userId)
+                        .collection(ADD_TO_CART_BY_USER).document(docId).update("qty", newQty)
                         .addOnSuccessListener {
                             trySend(ResultState.Success("Quantity Updated"))
                             close()
-                        }
-                        .addOnFailureListener {
+                        }.addOnFailureListener {
                             trySend(ResultState.Error(it))
                             close()
                         }
@@ -376,8 +404,7 @@ class Repoimple @Inject constructor(
                     trySend(ResultState.Error(Exception("Product not found in cart")))
                     close()
                 }
-            }
-            .addOnFailureListener {
+            }.addOnFailureListener {
                 trySend(ResultState.Error(it))
                 close()
             }
@@ -385,6 +412,40 @@ class Repoimple @Inject constructor(
         awaitClose {
             close()
         }
+    }
+
+    override fun addShippingRepo(shippingModel: ShippingModel): Flow<ResultState<String>> =
+        callbackFlow {
+            trySend(ResultState.Loading)
+            firebaseFireStore.collection(SHIPPING)
+                .document(firebaseAuth.currentUser?.uid.toString()).set(shippingModel)
+                .addOnSuccessListener {
+                    trySend(ResultState.Success("Address Added"))
+                }.addOnFailureListener {
+                    trySend(ResultState.Error(it))
+                }
+            awaitClose {
+                close()
+            }
+        }
+
+    override fun getShippingRepo(): Flow<ResultState<ShippingModel>> = callbackFlow {
+        trySend(ResultState.Loading)
+        firebaseFireStore.collection(SHIPPING)
+            .document(firebaseAuth.currentUser?.uid.toString())
+            .get()
+            .addOnSuccessListener {
+                val data = it.toObject(ShippingModel::class.java)
+                trySend(ResultState.Success(data.let {
+                    data ?: ShippingModel()
+                }))
+            }.addOnFailureListener {
+                trySend(ResultState.Error(it))
+            }
+        awaitClose {
+            close()
+        }
+
     }
 
 }

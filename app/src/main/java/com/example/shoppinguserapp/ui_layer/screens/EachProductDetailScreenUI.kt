@@ -91,15 +91,12 @@ fun EachProductDetailScreenUI(
     viewModel: AppViewModel = hiltViewModel(),
     navController: NavController,
     productId: String,
-    firebaseAuth: FirebaseAuth,
-
-
-    ) {
+) {
     val eachProductDetailState = viewModel.getProductByIdState.collectAsStateWithLifecycle()
     var count by rememberSaveable { mutableIntStateOf(1) }
 
-    var selectedSize by remember { mutableStateOf("") }
-    var selectedColor by remember { mutableStateOf(Color.Transparent) }
+    var selectedSize by remember { mutableStateOf("M") }
+    var selectedColor by remember { mutableStateOf(Color.Green) }
 
     LaunchedEffect(key1 = Unit) {
         viewModel.getProductById(productId)
@@ -311,18 +308,19 @@ fun EachProductDetailScreenUI(
 
                             )
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             listOf(
                                 Color.Green, Color.Cyan, Color.Yellow, Color.Blue
                             ).forEach { color ->
                                 Box(modifier = Modifier
-                                    .size(40.dp)
+                                    .size(if (selectedColor == color) 40.dp else 35.dp)
                                     .clickable { selectedColor = color }
                                     .background(color, RoundedCornerShape(8.dp))
                                     .border(
-                                        width = if (selectedColor == color) 3.dp else 1.dp,
-                                        color = if (selectedColor == color) Color.Black else Color.Gray,
+                                        if (selectedColor == color) 1.dp else 0.dp,
+                                        color = Color.Gray,
                                         shape = RoundedCornerShape(8.dp)
                                     ))
                             }
@@ -377,7 +375,6 @@ fun IncreaseDecreesRow(count: Int, onIncrease: () -> Unit, onDecrease: () -> Uni
 fun ButtonsContent(
     navController: NavController,
     viewModel: AppViewModel,
-
     productsData: Products?,
     productId: String,
     selectedColor: Color,
@@ -424,7 +421,14 @@ fun ButtonsContent(
         modifier = Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Button(
-            onClick = { navController.navigate(Routes.ShippingScreen) },
+            onClick = {
+                navController.navigate(
+                    Routes.ShippingScreen(
+                        productId, selectedSize, colorToHex(selectedColor),
+                        count.toString()
+                    )
+                )
+            },
             colors = ButtonDefaults.buttonColors(
                 Color(0xfff68b8b), contentColor = Color.White
             ),
@@ -436,47 +440,49 @@ fun ButtonsContent(
             )
         }
 
-        if (checkCartState.value.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = Color(0xff2112e2))
-            }
-        } else {
-            Button(
-                onClick = {
-                    if (checkCartState.value.success) {
-                        navController.navigate(Routes.CartScreen)
-                    } else {
-                        if (selectedSize.isNotEmpty() && selectedColor != Color.Transparent) {
-                            val cartModel = productsData?.toCartModel(
-                                qty = count,
-                                color = colorToHex(selectedColor),
-                                size = selectedSize
-                            )
-                            viewModel.addProductCart(cartModel!!)
 
-                        } else {
-                            Toast.makeText(
-                                context, "Please select size and color", Toast.LENGTH_SHORT
-                            ).show()
-                        }
+        Button(
+            onClick = {
+                if (checkCartState.value.success) {
+                    navController.navigate(Routes.CartScreen)
+                } else {
+                    if (selectedSize.isNotEmpty() && selectedColor != Color.Transparent) {
+                        val cartModel = productsData?.toCartModel(
+                            qty = count,
+                            color = colorToHex(selectedColor),
+                            size = selectedSize
+                        )
+                        viewModel.addProductCart(cartModel!!)
+
+                    } else {
+                        Toast.makeText(
+                            context, "Please select size and color", Toast.LENGTH_SHORT
+                        ).show()
                     }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(15.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8c8585), contentColor = Color.White
-                )
-            ) {
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(15.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF8c8585), contentColor = Color.White
+            )
+        ) {
+            if (checkCartState.value.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(30.dp))
+                }
+            } else {
                 Text(
                     text = if (checkCartState.value.success) "Go to Cart " else "Add to Cart ",
                     fontSize = 20.sp,
                     modifier = Modifier.padding(vertical = 5.dp)
                 )
             }
-
         }
+
+
         Button(
             onClick = {
                 viewModel.addWishListModel(productsData!!)

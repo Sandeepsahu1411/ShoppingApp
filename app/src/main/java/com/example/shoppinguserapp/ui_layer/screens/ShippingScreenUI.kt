@@ -1,8 +1,6 @@
 package com.example.shoppinguserapp.ui_layer.screens
 
-import android.R.attr.fontWeight
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,15 +20,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,46 +37,66 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.ImeAction.Companion.Done
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.country_api.CountryResponse
 import com.example.shoppinguserapp.country_api.RetrofitInstance
+import com.example.shoppinguserapp.domen_layer.data_model.CartModel
+import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
-import com.google.android.play.integrity.internal.f
+import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
 
 @Composable
-fun ShippingScreenUI(navController: NavController) {
+fun ShippingScreenUI(
+    navController: NavController,
+    productId: String,
+    productSize: String,
+    productColor: String,
+    productQty: String,
+    viewModel: AppViewModel = hiltViewModel(),
+) {
+
+    val getCartState = viewModel.getCartState.collectAsStateWithLifecycle()
+    val getCartData = getCartState.value.success
+
+    val getProductByIdState = viewModel.getProductByIdState.collectAsStateWithLifecycle()
+    val productData = getProductByIdState.value.success
+
+
+    LaunchedEffect(productId) {
+        viewModel.getProductsCart()
+        if (productId.isNotEmpty()) {
+            viewModel.getProductById(productId)
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxHeight()
@@ -96,7 +113,7 @@ fun ShippingScreenUI(navController: NavController) {
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             modifier = Modifier.clickable {
-                navController.navigate(Routes.CartScreen)
+                navController.navigateUp()
             }) {
             Icon(
                 imageVector = Icons.Default.ArrowBackIosNew,
@@ -104,159 +121,209 @@ fun ShippingScreenUI(navController: NavController) {
                 Modifier.size(15.dp)
             )
             Text(
-                text = "Return to cart",
+                text = if (productId.isNotEmpty()) "Back to Product" else "Return to cart",
                 color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
         }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            item {
-                ProductDetail()
-            }
-            item {
-                ContactInformation()
-            }
-            item {
-                var selectedCountry by remember { mutableStateOf("") }
-                var selectedFlag by remember { mutableStateOf<String?>(null) }
-                CountryDropdownWithApi(selectedCountry = selectedCountry,
-                    selectedFlag = selectedFlag,
-                    onCountrySelected = { country, flag ->
-                        selectedCountry = country
-                        selectedFlag = flag
-                    })
-                ShippingAddress()
-            }
-            item {
-                var selectedMethod by remember { mutableStateOf("Free") }
-                ShippingMethod(
-                    selectedMethod = selectedMethod,
-                    onMethodSelected = { selectedMethod = it })
-            }
-            item {
-                Button(
-                    onClick = {
-                        navController.navigate(Routes.PaymentScreen)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 15.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF8c8585), contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        text = "Continue to Shipping",
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
+        when {
+            getCartState.value.isLoading || getProductByIdState.value.isLoading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
             }
 
+            getCartState.value.error != null || getProductByIdState.value.error.isNotEmpty() -> {
+                Toast.makeText(
+                    LocalContext.current,
+                    "Error: ${getCartState.value.error ?: getProductByIdState.value.error}",
+                    Toast.LENGTH_SHORT
+                )
+                    .show()
+            }
+
+            getCartState.value.success.isNotEmpty() -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    item {
+                        if (productId.isNotEmpty()) {
+                            EachBuyProductDetail(
+                                productSize,
+                                productColor,
+                                productQty,
+                                productData
+                            )
+                        } else {
+                            CartProductDetail(getCartData)
+                        }
+                    }
+
+                    item {
+                        ContactInformation()
+                    }
+                    item {
+                        var selectedCountry by remember { mutableStateOf("") }
+                        var selectedFlag by remember { mutableStateOf<String?>(null) }
+                        CountryDropdownWithApi(
+                            selectedCountry = selectedCountry,
+                            selectedFlag = selectedFlag,
+                            onCountrySelected = { country, flag ->
+                                selectedCountry = country
+                                selectedFlag = flag
+                            }
+                        )
+                        ShippingAddress(viewModel)
+                    }
+                    item {
+                        var selectedMethod by remember { mutableStateOf("Free") }
+                        ShippingMethod(
+                            selectedMethod = selectedMethod,
+                            onMethodSelected = { selectedMethod = it })
+                    }
+                    item {
+                        Button(
+                            onClick = {
+                                navController.navigate(Routes.PaymentScreen)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 15.dp),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF8c8585), contentColor = Color.White
+                            )
+                        ) {
+                            Text(
+                                text = "Continue to Shipping",
+                                fontSize = 20.sp,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
+                    }
+                }
+
+            }
         }
-
     }
-
 }
 
 @Composable
-fun ProductDetail() {
-
+fun CartProductDetail(
+    getCartData: List<CartModel>
+) {
+    val subTotal = getCartData.sumOf { it.finalPrice.toInt() * it.qty.toInt() }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Image(
-                painter = painterResource(id = R.drawable.product_frock),
-                contentDescription = null,
-                modifier = Modifier
-
-                    .size(70.dp, 100.dp)
-                    .clip(RectangleShape),
-                contentScale = ContentScale.Crop
-
-            )
-            Column(
-                modifier = Modifier.weight(0.7f), verticalArrangement = Arrangement.SpaceAround
-            ) {
-                Row {
-                    Text(
-                        text = "Modern Frock -",
-                        fontSize = 18.sp,
-                        color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "GF1025 ",
-                        fontSize = 16.sp,
-                        color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                }
-                Text(
-                    text = "Size : UK10",
-                    fontSize = 16.sp,
-                    color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
-
-                    )
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Color : ",
-                        fontSize = 16.sp,
-                        color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
 
 
-                        )
-                    Box(
+        Column {
+            getCartData.forEach { cartData ->
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    SubcomposeAsyncImage(model = if (cartData.imageUrl.isNotEmpty()) cartData.imageUrl else R.drawable.product_frock,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .clip(shape = RoundedCornerShape(5.dp))
-                            .size(20.dp)
-                            .background(Color.Green)
-                    )
+                            .size(50.dp, 70.dp)
+                            .clip(RoundedCornerShape(10.dp)),
+                        loading = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.LightGray)
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .align(Alignment.Center),
+                                    color = Color.Red
+                                )
+                            }
+                        })
+                    Column(
+                        modifier = Modifier.weight(0.7f),
+                    ) {
+                        Text(
+                            text = cartData.name,
+                            fontSize = 18.sp,
+                            color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 15.sp
+                        )
+                        Text(
+                            text = "Size : ${cartData.size}",
+                            fontSize = 16.sp,
+                            color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Color : ",
+                                fontSize = 16.sp,
+                                color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .clip(shape = RoundedCornerShape(5.dp))
+                                    .size(20.dp)
+                                    .background(hexToColor(cartData.color))
+                            )
+                        }
+
+
+                    }
+
+                    Column(
+                        modifier = Modifier.weight(0.3f),
+                        horizontalAlignment = Alignment.End,
+                    ) {
+                        Text(
+                            text = "Rs: ${cartData.finalPrice}",
+                            fontSize = 16.sp,
+                            color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
+                            fontWeight = FontWeight.Bold,
+
+                            )
+                        Text(
+                            text = "Qty: ${cartData.qty}",
+                            fontSize = 16.sp,
+                            color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                    }
                 }
-
-
+                Spacer(modifier = Modifier.height(10.dp))
             }
-
-            Text(
-                text = "Rs: 8740",
-                fontSize = 16.sp,
-                color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.3f),
-                textAlign = TextAlign.End
-            )
         }
         HorizontalDivider(thickness = 2.dp)
         Row {
-            Text(text = "Sub Total", fontSize = 18.sp)
-            Spacer(modifier = Modifier.weight(1f))
+            Text(text = "Sub Total", fontSize = 18.sp, modifier = Modifier.weight(1f))
             Text(
-                text = "Rs: 8740",
+                text = "Rs: $subTotal",
                 color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
         }
-        Row {
-            Text(text = "Shipping Charge", fontSize = 18.sp)
-            Spacer(modifier = Modifier.weight(1f))
+        Column {
+            Row {
+                Text(text = "Shipping Charge", fontSize = 18.sp, modifier = Modifier.weight(1f))
+                Text(
+                    text = if (subTotal > 3000) "Free" else "Rs: 100",
+                    color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
             Text(
-                text = "Free",
-                color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
+                text = "Free shipping over ₹3000",
+                fontSize = 14.sp,
+                color = if (isSystemInDarkTheme()) Color.White else Color(0xFFF68B8B),
             )
+
         }
         HorizontalDivider(thickness = 2.dp)
         Row {
@@ -268,7 +335,7 @@ fun ProductDetail() {
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = "Rs: 8740",
+                text = if (subTotal > 3000) "Rs: $subTotal" else "Rs: ${subTotal + 100}",
                 color = Color(0xFFf68b8b),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.ExtraBold
@@ -279,6 +346,152 @@ fun ProductDetail() {
         )
     }
 }
+
+@Composable
+fun EachBuyProductDetail(
+    productSize: String,
+    productColor: String,
+    productQty: String,
+    data: Products?
+) {
+
+
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+
+        val subTotal = (data?.finalPrice?.toIntOrNull() ?: 0) * productQty.toInt()
+
+        Column {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                SubcomposeAsyncImage(model = if (data?.image?.isEmpty() != true) data?.image else R.drawable.product_frock,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(50.dp, 70.dp)
+                        .clip(RoundedCornerShape(10.dp)),
+                    loading = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.LightGray)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .align(Alignment.Center),
+                                color = Color.Red
+                            )
+                        }
+                    })
+                Column(
+                    modifier = Modifier.weight(0.7f),
+                ) {
+                    Text(
+                        text = data?.name ?: "NA",
+                        fontSize = 18.sp,
+                        color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 15.sp
+                    )
+                    Text(
+                        text = "Size : $productSize",
+                        fontSize = 16.sp,
+                        color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Color : ",
+                            fontSize = 16.sp,
+                            color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
+                        )
+                        Box(
+                            modifier = Modifier
+                                .clip(shape = RoundedCornerShape(5.dp))
+                                .size(20.dp)
+                                .background(hexToColor(productColor))
+                        )
+                    }
+
+
+                }
+
+                Column(
+                    modifier = Modifier.weight(0.3f),
+                    horizontalAlignment = Alignment.End,
+                ) {
+                    Text(
+                        text = "Rs: ${data?.finalPrice}",
+                        fontSize = 16.sp,
+                        color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
+                        fontWeight = FontWeight.Bold,
+
+                        )
+                    Text(
+                        text = "Qty: $productQty",
+                        fontSize = 16.sp,
+                        color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+
+        }
+        HorizontalDivider(thickness = 2.dp)
+        Row {
+            Text(text = "Sub Total", fontSize = 18.sp, modifier = Modifier.weight(1f))
+            Text(
+                text = "Rs: $subTotal",
+                color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Column {
+            Row {
+                Text(
+                    text = "Shipping Charge",
+                    fontSize = 18.sp,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = if (subTotal > 3000) "Free" else "Rs: 100",
+                    color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Text(
+                text = "Free shipping over ₹3000",
+                fontSize = 14.sp,
+                color = if (isSystemInDarkTheme()) Color.White else Color(0xFFF68B8B),
+            )
+
+        }
+        HorizontalDivider(thickness = 2.dp)
+        Row {
+            Text(
+                text = "Total",
+                fontSize = 20.sp,
+                color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
+                fontWeight = FontWeight.ExtraBold
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = if (subTotal > 3000) "Rs: $subTotal" else "Rs: ${subTotal + 100}",
+                color = Color(0xFFf68b8b),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.ExtraBold
+            )
+        }
+        HorizontalDivider(
+            thickness = 1.dp,
+            color = Color.DarkGray,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+    }
+}
+
 
 @Composable
 fun ContactInformation() {
@@ -304,7 +517,8 @@ fun ContactInformation() {
                 }
                 withStyle(
                     style = SpanStyle(
-                        fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
                         color = if (isSystemInDarkTheme()) Color.White else Color.Gray
 
                     )
@@ -326,7 +540,11 @@ fun ContactInformation() {
 }
 
 @Composable
-fun ShippingAddress() {
+fun ShippingAddress(viewModel: AppViewModel) {
+
+    val addShippingAddress = viewModel.addShippingState.collectAsStateWithLifecycle()
+    val getShippingAddress = viewModel.getShippingState.collectAsStateWithLifecycle()
+
     val context = LocalContext.current
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
@@ -334,6 +552,22 @@ fun ShippingAddress() {
     var city by remember { mutableStateOf("") }
     var pinCode by remember { mutableStateOf("") }
     var contactNumber by remember { mutableStateOf("") }
+
+    when {
+        addShippingAddress.value.isLoading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+
+        addShippingAddress.value.error != null -> {
+            Toast.makeText(context, addShippingAddress.value.error, Toast.LENGTH_SHORT).show()
+        }
+
+        addShippingAddress.value.success != null -> {
+            Toast.makeText(context, "Success", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(15.dp)
@@ -363,34 +597,35 @@ fun ShippingAddress() {
                 onValueChange = { lastName = it },
                 placeholderText = "Last Name",
                 modifier = Modifier.weight(1f),
-
-
-                )
+                imeAction = ImeAction.Next
+            )
         }
         CustomOutlinedTextField(
             value = address,
             onValueChange = { address = it },
             placeholderText = "Address",
             Modifier.fillMaxWidth(),
+            imeAction = ImeAction.Next
 
-            )
+        )
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(15.dp)
         ) {
             CustomOutlinedTextField(
-                value = "",
-                onValueChange = {},
+                value = city,
+                onValueChange = { city = it },
                 placeholderText = "City",
                 modifier = Modifier.weight(1f),
-
-                )
+                imeAction = ImeAction.Next
+            )
             CustomOutlinedTextField(
-                value = "",
-                onValueChange = { },
+                value = pinCode,
+                onValueChange = { pinCode = it },
                 placeholderText = "Pin Code",
                 modifier = Modifier.weight(1f),
+                imeAction = ImeAction.Next
             )
         }
         CustomOutlinedTextField(

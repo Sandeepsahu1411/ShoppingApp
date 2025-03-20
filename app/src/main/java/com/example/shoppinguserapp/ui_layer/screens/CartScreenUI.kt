@@ -193,7 +193,6 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                             modifier = Modifier.fillMaxSize()
                                         )
                                     }
-
                                     Column(
                                         modifier = Modifier.weight(0.25f),
                                         verticalArrangement = Arrangement.SpaceAround
@@ -201,9 +200,7 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                         Text(
                                             text = cartData.name.let {
                                                 if (it.length > 15) "${
-                                                    it.take(
-                                                        15
-                                                    )
+                                                    it.take(15)
                                                 }..." else it
                                             },
                                             fontSize = 16.sp,
@@ -363,7 +360,6 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                         fontWeight = FontWeight.Bold,
                                         fontFamily = FontFamily.Serif
                                     )
-
                                     Text(
                                         text = "Rs: $subTotal",
                                         fontSize = 18.sp,
@@ -371,10 +367,16 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
-
                                 Button(
                                     onClick = {
-                                        navController.navigate(Routes.ShippingScreen)
+                                        navController.navigate(
+                                            Routes.ShippingScreen(
+                                                productId = "",
+                                                productSize = "",
+                                                productColor = "",
+                                                productQty = ""
+                                            )
+                                        )
                                     },
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(18.dp),

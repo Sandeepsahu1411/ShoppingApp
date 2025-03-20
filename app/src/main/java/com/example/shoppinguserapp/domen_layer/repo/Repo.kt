@@ -5,6 +5,7 @@ import com.example.shoppinguserapp.common.ResultState
 import com.example.shoppinguserapp.domen_layer.data_model.CartModel
 import com.example.shoppinguserapp.domen_layer.data_model.Category
 import com.example.shoppinguserapp.domen_layer.data_model.Products
+import com.example.shoppinguserapp.domen_layer.data_model.ShippingModel
 import com.example.shoppinguserapp.domen_layer.data_model.UserData
 import com.example.shoppinguserapp.domen_layer.data_model.WishListDataModel
 import kotlinx.coroutines.flow.Flow
@@ -26,6 +27,7 @@ interface Repo {
     fun addWishListRepo(products: Products): Flow<ResultState<String>>
     fun checkWishlistRepo(productId: String): Flow<ResultState<Boolean>>
     fun getWishListRepo(): Flow<ResultState<List<Products>>>
+    fun deleteWishListRepo(productId: String): Flow<ResultState<String>>
 
 
     fun productCartRepo(cartModel: CartModel): Flow<ResultState<String>>
@@ -33,6 +35,13 @@ interface Repo {
     fun getProductsCartRepo(): Flow<ResultState<List<CartModel>>>
     fun deleteProductCartRepo(productId: String): Flow<ResultState<String>>
     fun updateProductCartRepo( productId: String, newQty: Int): Flow<ResultState<String>>
+
+    fun addShippingRepo(shippingModel: ShippingModel): Flow<ResultState<String>>
+    fun getShippingRepo(): Flow<ResultState<ShippingModel>>
+
+
+
+
 
 
 

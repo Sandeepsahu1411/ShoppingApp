@@ -29,10 +29,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ShoppingUserAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Box(modifier = Modifier.padding()) {
-                        AppNavigation(firebaseAuth )
-                    }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding()
+                ) {
+                    AppNavigation(firebaseAuth)
                 }
             }
         }
