@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1083562217235",
+    "project_id": "instagram-clone-d6a23",
+    "storage_bucket": "instagram-clone-d6a23.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1083562217235:android:7c7b0ac6e229feae4214e6",
+        "android_client_info": {
+          "package_name": "com.example.shoppingapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCeO3c_R8rgTCuc3YhpiSYDfZnpakjm3lM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1083562217235:android:0ec00685bdaf45e24214e6",
+        "android_client_info": {
+          "package_name": "com.example.shoppinguserapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCeO3c_R8rgTCuc3YhpiSYDfZnpakjm3lM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
