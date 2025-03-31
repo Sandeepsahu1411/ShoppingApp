@@ -446,15 +446,7 @@ fun LogoutDialog(
                                 )
                             }
                         })
-//                    Image(
-//                        painter = painterResource(id = R.drawable.fake_profile),
-//                        contentDescription = null,
-//                        modifier = Modifier
-//                            .size(130.dp)
-//                            .clip(CircleShape)
-//                            .border(4.dp, Color(0xFFF68B8B), CircleShape)
-//
-//                    )
+
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "LOG OUT",

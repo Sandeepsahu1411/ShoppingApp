@@ -15,8 +15,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -48,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.example.shoppinguserapp.MainActivity
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
@@ -57,6 +61,11 @@ fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hilt
 
     val getCartState = viewModel.getCartState.collectAsStateWithLifecycle()
     val getCartData = getCartState.value.success
+    var selectedMethod by remember { mutableStateOf("Online") }
+    var selectedAddress by remember { mutableStateOf("Same") }
+
+    val activity = LocalContext.current as MainActivity
+
 
     LaunchedEffect(Unit) {
         viewModel.getProductsCart()
@@ -115,21 +124,28 @@ fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hilt
                         CartProductDetail(getCartData)
                     }
                     item {
-                        var selectedMethod by remember { mutableStateOf("Free") }
                         PaymentMethod(
                             selectedMethod = selectedMethod,
                             onMethodSelected = { selectedMethod = it })
                     }
                     item {
-                        var selectedAddress by remember { mutableStateOf("Same") }
                         BillingAddress(
                             selectedMethod = selectedAddress,
                             onMethodSelected = { selectedAddress = it })
                     }
                     item {
+                        val context = LocalContext.current
                         Button(
                             onClick = {
-                                navController.navigate(Routes.PaymentSuccessScreen)
+                                if (selectedMethod == "Online") {
+                                    activity.startPayment(
+                                        userName = "sandeep",
+                                        userEmail = "Sandeep@gmail.com",
+                                        userPhoneNo = "8773454678"
+                                    )
+                                } else {
+                                    navController.navigate(Routes.PaymentSuccessScreen)
+                                }
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -156,7 +172,7 @@ fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hilt
 fun PaymentMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Shipping Method",
+            text = "Payment Method",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = if (isSystemInDarkTheme()) Color.White else Color(0xFF5c5757),
@@ -164,7 +180,7 @@ fun PaymentMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
         )
         Text(
             text = "All transactions are secure and encrypted.",
-            fontSize = 12.sp,
+            fontSize = 14.sp,
             color = if (isSystemInDarkTheme()) Color.White else Color(0xFF5c5757),
 
             modifier = Modifier.padding(vertical = 10.dp)
@@ -185,10 +201,10 @@ fun PaymentMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
 
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { onMethodSelected("Free") }) {
+                    modifier = Modifier.clickable { onMethodSelected("Online") }) {
                     RadioButton(
-                        selected = selectedMethod == "Free",
-                        onClick = { onMethodSelected("Free") },
+                        selected = selectedMethod == "Online",
+                        onClick = { onMethodSelected("Online") },
                         colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFF68B8B))
                     )
                     Text(
@@ -275,7 +291,7 @@ fun PaymentMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
 fun BillingAddress(selectedMethod: String, onMethodSelected: (String) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Shipping Method",
+            text = "Billing Method",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = if (isSystemInDarkTheme()) Color.White else Color(0xFF5c5757),

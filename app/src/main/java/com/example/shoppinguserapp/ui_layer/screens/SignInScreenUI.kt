@@ -50,7 +50,7 @@ import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
 fun SignInScreenUI(
     viewModel: AppViewModel = hiltViewModel(),
     navController: NavController,
-    isUserLoggedIn: MutableState<Boolean>
+//    isUserLoggedIn: MutableState<Boolean>
 ) {
 
     val loginState = viewModel.loginUserState.collectAsState()
@@ -76,7 +76,7 @@ fun SignInScreenUI(
 
         loginState.value.success != null -> {
             Toast.makeText(context, loginState.value.success, Toast.LENGTH_SHORT).show()
-            isUserLoggedIn.value = true
+//            isUserLoggedIn.value = true
             viewModel.clearLoginState()
             navController.navigate(Routes.HomeScreen){
                 popUpTo(SubNavigation.LoginSignUpScreen){

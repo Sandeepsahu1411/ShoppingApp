@@ -8,6 +8,6 @@ data class ShippingModel(
     val lastName : String = "",
     val address : String = "",
     val city : String = "",
-    val postalCode : String = "",
+    val pinCode : String = "",
     val saveForNextTime : Boolean = false
 )

@@ -514,7 +514,7 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
     }
 
-    fun addShipping(shippingModel: ShippingModel) {
+    fun addShippingAddress(shippingModel: ShippingModel) {
         viewModelScope.launch(Dispatchers.IO) {
             useCase.addShippingUseCase(shippingModel).collectLatest {
                 when (it) {
@@ -535,7 +535,7 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
         }
     }
 
-    fun getShipping() {
+    fun getShippingAddress() {
         viewModelScope.launch(Dispatchers.IO) {
             useCase.getShippingUseCase().collectLatest {
                 when (it) {
@@ -650,6 +650,6 @@ data class AddShippingState(
 
 data class GetShippingState(
     val isLoading: Boolean = false,
-    val success: ShippingModel? = null,
+    var success: ShippingModel? = null,
     val error: String = ""
 )

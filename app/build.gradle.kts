@@ -71,24 +71,27 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // icons
-    implementation("androidx.compose.material:material-icons-extended-android:1.7.4")
+    implementation("androidx.compose.material:material-icons-extended-android:1.7.8")
     //navigation
-    implementation("androidx.navigation:navigation-compose:2.8.3")
+    implementation("androidx.navigation:navigation-compose:2.8.9")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     //hilt
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     //coil (imageViewer)
-    implementation("io.coil-kt:coil-compose:2.2.2")
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
     // Retrofit for API
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
 
     //lottie Animation
     implementation("com.airbnb.android:lottie-compose:6.1.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
+
+    //razorpay  integration
+    implementation ("com.razorpay:checkout:1.6.41")
 
 
 

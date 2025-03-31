@@ -49,7 +49,6 @@ fun BottomNavigation(
     )
     val isGestureNavigation = isGestureNavigationEnabled()
 
-
     Box(
         modifier = Modifier
             .fillMaxWidth()

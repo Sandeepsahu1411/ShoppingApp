@@ -42,6 +42,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -75,14 +76,19 @@ import kotlinx.coroutines.delay
 fun CustomOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    placeholderText: String,
+    placeholderText: String = "",
     modifier: Modifier = Modifier,
     isPassword: Boolean = false,
     isEditable: Boolean = true,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Done,
     onImeAction: (() -> Unit)? = null,
-    onlyNumbers: Boolean = false
+    onlyNumbers: Boolean = false,
+    maxLines: Int = 1,
+    prefix: @Composable (() -> Unit)? = null,
+    singleLine: Boolean = true
 
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -94,6 +100,7 @@ fun CustomOutlinedTextField(
                 onValueChange(it)
             }
         },
+        singleLine = singleLine,
         label = {
             Text(
                 text = placeholderText,
@@ -101,32 +108,40 @@ fun CustomOutlinedTextField(
                 style = MaterialTheme.typography.bodyMedium
             )
         },
-        modifier = modifier.height(60.dp),
-        singleLine = true,
+        prefix = prefix,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(60.dp),
+        maxLines = maxLines,
         readOnly = !isEditable,
-        textStyle = TextStyle(fontSize = 16.sp),
+        textStyle = TextStyle(fontSize = 18.sp),
         visualTransformation = if (isPassword && !passwordVisibility) PasswordVisualTransformation() else VisualTransformation.None,
-        trailingIcon = {
-            if (isPassword) {
+        trailingIcon = trailingIcon ?: if (isPassword) {
+            {
                 val icon =
                     if (passwordVisibility) Icons.Default.Visibility else Icons.Default.VisibilityOff
                 IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
                     Icon(
                         imageVector = icon,
-                        tint = Color(0xFFF68B8B),
-                        contentDescription = if (passwordVisibility) "Hide password" else "Show password",
-                        modifier = Modifier.padding(horizontal = 5.dp)
-
+                        contentDescription = if (passwordVisibility) "Hide password" else "Show password"
                     )
                 }
             }
-        },
+        } else null,
         shape = RoundedCornerShape(12.dp),
-        colors = TextFieldDefaults.textFieldColors(
-            containerColor = Color.Transparent,
-            focusedIndicatorColor = Color(0xFFF68B8B),
-            unfocusedIndicatorColor = Color(0xFFF68B8B),
-        ),
+        colors = OutlinedTextFieldDefaults.colors(
+
+//            unfocusedTextColor = MaterialTheme.colorScheme.primary,
+            focusedBorderColor = Color(0xFFF68B8B),
+            unfocusedBorderColor =Color(0xFFF68B8B),
+            focusedLeadingIconColor = Color(0xFFF68B8B),
+            unfocusedLeadingIconColor =Color(0xFFF68B8B),
+            focusedTrailingIconColor =Color(0xFFF68B8B),
+            unfocusedTrailingIconColor =Color(0xFFF68B8B),
+//            unfocusedPlaceholderColor = MaterialTheme.colorScheme.primary,
+
+
+            ),
         keyboardOptions = KeyboardOptions.Default.copy(
             keyboardType = keyboardType,
             imeAction = imeAction
@@ -138,7 +153,8 @@ fun CustomOutlinedTextField(
             },
             onGo = { onImeAction?.invoke() }
 
-        )
+        ),
+        leadingIcon = leadingIcon
     )
 }
 

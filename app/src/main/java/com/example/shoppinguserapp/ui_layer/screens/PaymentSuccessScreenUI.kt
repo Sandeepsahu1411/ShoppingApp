@@ -1,11 +1,14 @@
 package com.example.shoppinguserapp.ui_layer.screens
 
+import android.R.attr.onClick
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -37,41 +41,50 @@ import com.example.shoppinguserapp.ui_layer.navigation.Routes
 fun PaymentSuccessScreenUI(navController: NavController) {
     // Box to arrange items vertically
 
-        Column(
-            modifier = Modifier.fillMaxSize().padding(25.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(25.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
 
         ) {
-            // Lottie Animation
-            LottieAnimation(
-                modifier = Modifier
-                    .size(350.dp),
-                resId = R.raw.payment_success
-            )
+        // Lottie Animation
+        LottieAnimation(
+            modifier = Modifier
+                .size(350.dp),
+            resId = R.raw.order_placed
+        )
 
-            // Start Shopping Button
-            Button(
-                onClick = {
-                   navController.navigate(Routes.HomeScreen){
-                       popUpTo(Routes.HomeScreen){
-                           inclusive=true
-                       }
-                   }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(15.dp),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF68B8B), contentColor = Color.White
-                )
-            ) {
-                Text(
-                    text = "Start Shopping",
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
+        Text(
+            text = "Order Placed",
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFFF68B8B)
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        // Start Shopping Button
+        Button(
+            onClick = {
+                navController.navigate(Routes.HomeScreen) {
+                    popUpTo(Routes.HomeScreen) {
+                        inclusive = true
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(15.dp),
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFF68B8B), contentColor = Color.White
+            )
+        ) {
+            Text(
+                text = "Start Shopping",
+                fontSize = 20.sp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
         }
+    }
 
 }
 

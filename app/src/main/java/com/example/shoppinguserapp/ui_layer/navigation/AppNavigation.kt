@@ -1,8 +1,10 @@
 package com.example.shoppinguserapp.ui_layer.navigation
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 
 import androidx.navigation.compose.NavHost
@@ -42,63 +45,71 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
     val navController = rememberNavController()
 
     var selectedItemIndex by remember { mutableIntStateOf(0) }
-    val currentDestinationAsState = navController.currentBackStackEntryAsState()
-    val currentDestination = currentDestinationAsState.value?.destination?.route
-    val shouldShowBottomBar = remember(currentDestination) {
-        mutableStateOf(
-            when (currentDestination) {
-                Routes.SignInScreen::class.qualifiedName,
-                Routes.SignUpScreen::class.qualifiedName -> false
+    val currentDestination by navController.currentBackStackEntryAsState()
 
-                else -> true
-            }
-        )
-    }
+    val screensWithBottomBar = listOf(
+        Routes.HomeScreen::class.qualifiedName,
+        Routes.WishListScreen::class.qualifiedName,
+        Routes.CartScreen::class.qualifiedName,
+        Routes.ProfileScreen::class.qualifiedName
+    )
 
-    val isUserLoggedIn = remember { mutableStateOf(firebaseAuth.currentUser != null) }
+    val shouldShowBottomBar = currentDestination?.destination?.route in screensWithBottomBar
+
+    val shouldUseFullScreen = currentDestination?.destination?.route in listOf(
+        Routes.SignInScreen::class.qualifiedName,
+        Routes.SignUpScreen::class.qualifiedName
+    )
 
     LaunchedEffect(currentDestination) {
-        shouldShowBottomBar.value = when (currentDestination) {
-            Routes.SignInScreen::class.qualifiedName, Routes.SignUpScreen::class.qualifiedName -> false
-            else -> true
-        }
-        selectedItemIndex =when(currentDestination){
+        selectedItemIndex = when (currentDestination?.destination?.route) {
             Routes.HomeScreen::class.qualifiedName -> 0
             Routes.WishListScreen::class.qualifiedName -> 1
             Routes.CartScreen::class.qualifiedName -> 2
-            Routes.ShippingScreen::class.qualifiedName -> 2
-            Routes.PaymentScreen::class.qualifiedName -> 2
             Routes.ProfileScreen::class.qualifiedName -> 3
-            else -> 0
+            else -> selectedItemIndex
         }
     }
 
-    val startScreen = if (isUserLoggedIn.value) {
+    val startScreen = if (firebaseAuth.currentUser != null) {
         SubNavigation.MainHomeScreen
     } else {
         SubNavigation.LoginSignUpScreen
     }
 
     Scaffold(
-//            containerColor = Color(0xFFFEEEBD8),
         bottomBar = {
-            if (shouldShowBottomBar.value) {
-                BottomNavigation(navController = navController,
+            if (shouldShowBottomBar) {
+                BottomNavigation(
+                    navController = navController,
                     selectedItemIndex = selectedItemIndex,
-                    onItemSelected = { selectedItemIndex = it })
+                    onItemSelected = { index ->
+                        selectedItemIndex = index
+                        when (index) {
+                            0 -> navController.navigate(Routes.HomeScreen::class.qualifiedName!!)
+                            1 -> navController.navigate(Routes.WishListScreen::class.qualifiedName!!)
+                            2 -> navController.navigate(Routes.CartScreen::class.qualifiedName!!)
+                            3 -> navController.navigate(Routes.ProfileScreen::class.qualifiedName!!)
+                        }
+                    }
+                )
             }
-        }) {
+        }
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .then(if (shouldShowBottomBar.value) Modifier.padding(it) else Modifier)
+                .then(
+                    if (shouldUseFullScreen) Modifier
+                    else Modifier.padding(innerPadding)
+                )
         ) {
             NavHost(navController = navController, startDestination = startScreen) {
 
                 navigation<SubNavigation.LoginSignUpScreen>(startDestination = Routes.SignInScreen) {
                     composable<Routes.SignInScreen> {
                         SignInScreenUI(
-                            navController = navController, isUserLoggedIn = isUserLoggedIn
+                            navController = navController,
                         )
                     }
                     composable<Routes.SignUpScreen> {
@@ -169,4 +180,5 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
         }
     }
 }
+
 
