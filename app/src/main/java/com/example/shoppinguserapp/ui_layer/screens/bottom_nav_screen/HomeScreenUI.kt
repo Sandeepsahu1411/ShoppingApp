@@ -112,9 +112,8 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                 //Main Body Content LazyColumn
                 LazyColumn(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     //Category And See All Row
                     item {
@@ -317,7 +316,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                     //Product Lazy Row
                     item {
                         LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                             contentPadding = PaddingValues(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {

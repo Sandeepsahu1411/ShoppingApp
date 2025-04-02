@@ -3,14 +3,17 @@ package com.example.shoppinguserapp.ui_layer.screens.bottom_nav_screen
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -58,69 +62,100 @@ import com.google.firebase.auth.FirebaseAuth
 fun WishListScreenUI(
     navController: NavController,
     viewModel: AppViewModel = hiltViewModel(),
-    firebaseAuth: FirebaseAuth
 ) {
     LaunchedEffect(Unit) {
         viewModel.getWishlistModel()
     }
 
     val getWishlistState = viewModel.getWishlistState.collectAsStateWithLifecycle()
-    Log.d("WishListScreenUI", "WishListScreenUI: ${getWishlistState.value.success}")
+    val wishlistData = getWishlistState.value.success
 
-    when {
-        getWishlistState.value.isLoading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        }
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(modifier = Modifier.weight(0.2f)) {
+            Row {
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(start = 20.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "My Wishlist",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isSystemInDarkTheme()) Color.White else Color.Black
+                    )
 
-        getWishlistState.value.error.isNotEmpty() -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = getWishlistState.value.error.toString())
-            }
-        }
-
-        getWishlistState.value.success.isNotEmpty() -> {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-
-                Text(
-                    text = "Your Wishlist",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    fontFamily = FontFamily.Serif,
+                }
+                Image(
+                    painter = painterResource(id = R.drawable.sign_top),
+                    contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(10.dp)
+                        .size(200.dp),
+                    alignment = Alignment.TopEnd
                 )
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(getWishlistState.value.success){
-                        product ->
-                        WishlistItem(navController,product = product,viewModel)
-                    }
+            }
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
 
+                .weight(0.8f), horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            when {
+                getWishlistState.value.isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                getWishlistState.value.error.isNotEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(text = getWishlistState.value.error.toString())
+                    }
+                }
+
+                !getWishlistState.value.isLoading && wishlistData.isEmpty()  -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "No items in wishlist",
+                            fontSize = 20.sp,
+                            color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
+                        )
+                    }
+                }
+
+                getWishlistState.value.success.isNotEmpty() -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(wishlistData) { product ->
+                            WishlistItem(navController, product = product, viewModel)
+                        }
+
+                    }
                 }
             }
         }
+
     }
 }
 
 @Composable
-fun WishlistItem(navController: NavController,product: Products,viewModel: AppViewModel) {
+fun WishlistItem(navController: NavController, product: Products, viewModel: AppViewModel) {
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(5.dp)
-            .clickable{
+            .clickable {
                 navController.navigate(Routes.EachProductDetailScreen(productId = product.productId))
             },
         shape = RoundedCornerShape(12.dp),
@@ -131,7 +166,7 @@ fun WishlistItem(navController: NavController,product: Products,viewModel: AppVi
             modifier = Modifier.padding(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if ( product.image.isNotEmpty()) {
+            if (product.image.isNotEmpty()) {
                 var isLoading by remember { mutableStateOf(true) }
 
                 Box(
@@ -146,7 +181,7 @@ fun WishlistItem(navController: NavController,product: Products,viewModel: AppVi
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .size(50.dp,80.dp)
+                            .size(50.dp, 80.dp)
                             .clip(RoundedCornerShape(8.dp)),
                         onSuccess = { isLoading = false },
                         onError = { isLoading = false }
@@ -167,7 +202,7 @@ fun WishlistItem(navController: NavController,product: Products,viewModel: AppVi
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(50.dp,80.dp)
+                        .size(50.dp, 80.dp)
                         .clip(RoundedCornerShape(8.dp))
                 )
             }

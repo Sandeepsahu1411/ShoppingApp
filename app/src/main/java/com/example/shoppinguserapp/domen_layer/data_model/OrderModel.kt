@@ -1,6 +1,7 @@
 package com.example.shoppinguserapp.domen_layer.data_model
 
 data class OrderModel(
+    val userId : String = "",
     val orderId : String = "",
     val products: List<ProductItem> = emptyList(),
     val date : Long = System.currentTimeMillis(),

@@ -108,7 +108,7 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
                         )
                     }
                     composable<Routes.SignUpScreen> {
-                        SignUpScreenUI(navController = navController)
+                        SignUpScreenUI(navController = navController, firebaseAuth = firebaseAuth)
                     }
                 }
                 navigation<SubNavigation.MainHomeScreen>(startDestination = Routes.HomeScreen) {
@@ -129,7 +129,7 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
                         EachCategoryScreenUI(navController, categoryName.toString())
                     }
                     composable<Routes.WishListScreen> {
-                        WishListScreenUI(navController = navController, firebaseAuth = firebaseAuth)
+                        WishListScreenUI(navController = navController)
 
                     }
 

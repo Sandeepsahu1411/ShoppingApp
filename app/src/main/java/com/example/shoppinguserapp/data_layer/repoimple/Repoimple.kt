@@ -453,52 +453,40 @@ class Repoimple @Inject constructor(
 
     override fun addOrderRepo(orderModel: OrderModel): Flow<ResultState<String>> = callbackFlow {
         trySend(ResultState.Loading)
+        val updatedOrderModel = orderModel.copy(userId = firebaseAuth.currentUser?.uid.toString())
         firebaseFireStore.collection(ORDER)
-            .add(orderModel)
+            .add(updatedOrderModel)
             .addOnSuccessListener {
                 trySend(ResultState.Success("Order Placed"))
-            }.addOnFailureListener {
+            }
+            .addOnFailureListener {
                 trySend(ResultState.Error(it))
             }
-        awaitClose {
-            close()
-        }
+
+        awaitClose { close() }
     }
 
     override fun getOrderRepo(): Flow<ResultState<List<OrderModel>>> = callbackFlow {
         trySend(ResultState.Loading)
-        firebaseFireStore.collection(ORDER).get().addOnSuccessListener {
-            val data = it.documents.mapNotNull {
-                it.toObject(OrderModel::class.java)
+
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        val userId = currentUser?.uid ?: ""
+
+        firebaseFireStore.collection(ORDER)
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val data = querySnapshot.documents.mapNotNull {
+                    it.toObject(OrderModel::class.java)
+                }
+                trySend(ResultState.Success(data))
             }
-            trySend(ResultState.Success(data))
-        }.addOnFailureListener {
-            trySend(ResultState.Error(it))
-        }
-        awaitClose {
-            close()
-        }
+            .addOnFailureListener { exception ->
+                trySend(ResultState.Error(exception))
+            }
 
-
-//        trySend(ResultState.Loading)
-//        firebaseFireStore.collection(ORDER)
-//            .document(firebaseAuth.currentUser?.uid.toString())
-//            .get()
-//            .addOnSuccessListener {
-//                val data = it.toObject(OrderModel::class.java)
-//                trySend(ResultState.Success(data.let {
-//                    data ?: OrderModel()
-//                }))
-//
-//
-//            }.addOnFailureListener {
-//                trySend(ResultState.Error(it))
-//            }
-//        awaitClose {
-//            close()
-//        }
-
-
+        awaitClose { close() }
     }
+
 
 }

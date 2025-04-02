@@ -48,9 +48,14 @@ import com.example.shoppinguserapp.ui_layer.navigation.Routes
 import com.example.shoppinguserapp.ui_layer.screens.CustomOutlinedTextField
 import com.example.shoppinguserapp.ui_layer.screens.SuccessDialog
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun SignUpScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavController) {
+fun SignUpScreenUI(
+    viewModel: AppViewModel = hiltViewModel(),
+    navController: NavController,
+    firebaseAuth: FirebaseAuth
+) {
 
     val registerState = viewModel.registerUserState.collectAsState()
     val context = LocalContext.current
@@ -146,7 +151,7 @@ fun SignUpScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: Nav
 
                 CustomOutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = { email = it.lowercase() },
                     placeholderText = "Email",
                     Modifier.fillMaxWidth(),
                     imeAction = ImeAction.Next,
@@ -333,14 +338,14 @@ fun SignUpScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: Nav
         }
         SuccessDialog(showDialog = showDialog, onDismiss = {
             showDialog = false
-            navController.navigate(Routes.SignInScreen) {
+            firebaseAuth.signOut()
+            navController.navigate(Routes.SignInScreen ) {
                 popUpTo(Routes.SignUpScreen) {
                     inclusive = true
                 }
             }
         }
         )
-
     }
 }
 

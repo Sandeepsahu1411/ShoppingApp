@@ -65,7 +65,9 @@ fun BottomNavigation(
                     modifier = Modifier
                         .fillMaxHeight()
                         .weight(1f)
-                        .clickable {
+                        .clickable (
+                            enabled = selectedItemIndex != index,
+                        ){
                             onItemSelected(index)
                             when (index) {
                                 0 -> navController.navigate(Routes.HomeScreen) {
@@ -73,7 +75,6 @@ fun BottomNavigation(
                                         inclusive = true
                                     }
                                 }
-
                                 1 -> navController.navigate(Routes.WishListScreen)
                                 2 -> navController.navigate(Routes.CartScreen)
                                 3 -> navController.navigate(Routes.ProfileScreen)

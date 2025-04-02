@@ -119,7 +119,7 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                     ).show()
                 }
 
-                getCartData.isEmpty() -> {
+                !getCartProductState.value.isLoading && getCartData.isEmpty() -> {
                     Column(
                         modifier = Modifier
                             .fillMaxSize(),
@@ -148,7 +148,6 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
 
                                 var quantity =
                                     quantities[cartData.productId] ?: cartData.qty.toInt()
-
 
                                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                     if (cartData.imageUrl.isNotEmpty()) {
