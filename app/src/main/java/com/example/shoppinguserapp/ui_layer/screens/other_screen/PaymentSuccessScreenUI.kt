@@ -1,9 +1,6 @@
-package com.example.shoppinguserapp.ui_layer.screens
+package com.example.shoppinguserapp.ui_layer.screens.other_screen
 
-import android.R.attr.onClick
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,12 +11,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.*
 import com.airbnb.lottie.compose.*
 
 import androidx.compose.ui.Alignment
@@ -74,7 +68,7 @@ fun PaymentSuccessScreenUI(navController: NavController) {
             },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(15.dp),
-            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+            colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFFF68B8B), contentColor = Color.White
             )
         ) {

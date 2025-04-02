@@ -1,4 +1,4 @@
-package com.example.shoppinguserapp.ui_layer.screens
+package com.example.shoppinguserapp.ui_layer.screens.other_screen
 
 
 import androidx.compose.foundation.Image

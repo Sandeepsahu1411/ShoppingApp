@@ -1,4 +1,4 @@
-package com.example.shoppinguserapp.ui_layer.screens
+package com.example.shoppinguserapp.ui_layer.screens.start_screen
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -23,7 +23,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +34,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,13 +45,13 @@ import androidx.navigation.NavController
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
 import com.example.shoppinguserapp.ui_layer.navigation.SubNavigation
+import com.example.shoppinguserapp.ui_layer.screens.CustomOutlinedTextField
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
 
 @Composable
 fun SignInScreenUI(
     viewModel: AppViewModel = hiltViewModel(),
     navController: NavController,
-//    isUserLoggedIn: MutableState<Boolean>
 ) {
 
     val loginState = viewModel.loginUserState.collectAsState()
@@ -76,15 +77,12 @@ fun SignInScreenUI(
 
         loginState.value.success != null -> {
             Toast.makeText(context, loginState.value.success, Toast.LENGTH_SHORT).show()
-//            isUserLoggedIn.value = true
             viewModel.clearLoginState()
-            navController.navigate(Routes.HomeScreen){
-                popUpTo(SubNavigation.LoginSignUpScreen){
+            navController.navigate(Routes.HomeScreen) {
+                popUpTo(SubNavigation.LoginSignUpScreen) {
                     inclusive = true
                 }
             }
-
-
         }
     }
 
@@ -99,7 +97,7 @@ fun SignInScreenUI(
                         .weight(0.5f)
                         .padding(30.dp)
                         .align(Alignment.Bottom),
-                    color =if(isSystemInDarkTheme()) Color.White else Color.Black,
+                    color = if (isSystemInDarkTheme()) Color.White else Color.Black,
 
                     )
                 Image(
@@ -126,7 +124,9 @@ fun SignInScreenUI(
                     value = userEmail,
                     onValueChange = { userEmail = it },
                     placeholderText = "Email",
-                    Modifier.fillMaxWidth()
+                    Modifier.fillMaxWidth(),
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next,
                 )
 
                 CustomOutlinedTextField(
@@ -134,8 +134,8 @@ fun SignInScreenUI(
                     onValueChange = { userPassword = it },
                     placeholderText = "Password",
                     Modifier.fillMaxWidth(),
-                    isPassword = true
-
+                    isPassword = true,
+                    keyboardType = KeyboardType.Password,
                 )
                 Text(
                     text = "Forgot Password?",
@@ -174,7 +174,11 @@ fun SignInScreenUI(
                     horizontalArrangement = Arrangement.Center
                 ) {
 
-                    Text(text = "Don't have an account? ",color =if(isSystemInDarkTheme())Color.White else Color.Gray, fontSize = 16.sp)
+                    Text(
+                        text = "Don't have an account? ",
+                        color = if (isSystemInDarkTheme()) Color.White else Color.Gray,
+                        fontSize = 16.sp
+                    )
                     Text(
                         text = "Sign Up",
                         color = Color(0xFFF68B8B),

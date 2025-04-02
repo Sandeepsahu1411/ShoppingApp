@@ -1,10 +1,6 @@
-package com.example.shoppinguserapp.ui_layer.screens
+package com.example.shoppinguserapp.ui_layer.screens.other_screen
 
-import android.R.attr.category
-import android.util.Log
 import android.widget.Toast
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,12 +23,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material.icons.filled.StarOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.Button
@@ -47,19 +40,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -77,14 +66,10 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
-import com.google.android.play.integrity.internal.s
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.domen_layer.data_model.toCartModel
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
-import com.google.android.play.integrity.internal.z
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.AggregateField.count
 
 @Composable
 fun EachProductDetailScreenUI(
@@ -312,11 +297,12 @@ fun EachProductDetailScreenUI(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             listOf(
-                                Color.Green, Color.Cyan, Color.Yellow, Color.Blue
+                                Color.Green,Color(0xFFFDE6DC), Color.Yellow, Color.Blue, Color.Red, Color.Black, Color.Magenta
                             ).forEach { color ->
                                 Box(modifier = Modifier
                                     .size(if (selectedColor == color) 40.dp else 35.dp)
                                     .clickable { selectedColor = color }
+                                    .clip(RoundedCornerShape(8.dp))
                                     .background(color, RoundedCornerShape(8.dp))
                                     .border(
                                         if (selectedColor == color) 1.dp else 0.dp,
@@ -406,8 +392,6 @@ fun ButtonsContent(
         viewModel.resetWishlistState()
     }
     if (addToCartState.value.success != null) {
-        Toast.makeText(LocalContext.current, addToCartState.value.success, Toast.LENGTH_SHORT)
-            .show()
         viewModel.checkProductCart(productId)
         addToCartState.value.success = null
 
@@ -446,7 +430,7 @@ fun ButtonsContent(
                 if (checkCartState.value.success) {
                     navController.navigate(Routes.CartScreen)
                 } else {
-                    if (selectedSize.isNotEmpty() && selectedColor != Color.Transparent) {
+//                    if (selectedSize.isNotEmpty() && selectedColor != Color.Transparent) {
                         val cartModel = productsData?.toCartModel(
                             qty = count,
                             color = colorToHex(selectedColor),
@@ -454,11 +438,11 @@ fun ButtonsContent(
                         )
                         viewModel.addProductCart(cartModel!!)
 
-                    } else {
-                        Toast.makeText(
-                            context, "Please select size and color", Toast.LENGTH_SHORT
-                        ).show()
-                    }
+//                    } else {
+//                        Toast.makeText(
+//                            context, "Please select size and color", Toast.LENGTH_SHORT
+//                        ).show()
+//                    }
                 }
             },
             modifier = Modifier.fillMaxWidth(),

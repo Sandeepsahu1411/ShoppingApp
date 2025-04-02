@@ -4,6 +4,7 @@ import android.net.Uri
 import com.example.shoppinguserapp.common.ResultState
 import com.example.shoppinguserapp.domen_layer.data_model.CartModel
 import com.example.shoppinguserapp.domen_layer.data_model.Category
+import com.example.shoppinguserapp.domen_layer.data_model.OrderModel
 import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.domen_layer.data_model.ShippingModel
 import com.example.shoppinguserapp.domen_layer.data_model.UserData
@@ -33,11 +34,14 @@ interface Repo {
     fun productCartRepo(cartModel: CartModel): Flow<ResultState<String>>
     fun checkProductCartRepo(productId: String): Flow<ResultState<Boolean>>
     fun getProductsCartRepo(): Flow<ResultState<List<CartModel>>>
-    fun deleteProductCartRepo(productId: String): Flow<ResultState<String>>
+    fun deleteProductCartRepo(): Flow<ResultState<String>>
     fun updateProductCartRepo( productId: String, newQty: Int): Flow<ResultState<String>>
 
     fun addShippingRepo(shippingModel: ShippingModel): Flow<ResultState<String>>
     fun getShippingRepo(): Flow<ResultState<ShippingModel>>
+
+    fun addOrderRepo(orderModel: OrderModel): Flow<ResultState<String>>
+    fun getOrderRepo(): Flow<ResultState<List<OrderModel>>>
 
 
 

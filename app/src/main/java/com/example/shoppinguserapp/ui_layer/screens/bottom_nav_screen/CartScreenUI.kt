@@ -1,7 +1,5 @@
-package com.example.shoppinguserapp.ui_layer.screens
+package com.example.shoppinguserapp.ui_layer.screens.bottom_nav_screen
 
-import android.util.Log
-import android.widget.Space
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,33 +18,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Minimize
-import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -63,8 +55,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
+import com.example.shoppinguserapp.ui_layer.screens.CartHeaderRow
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
-import com.google.android.play.integrity.internal.q
 
 @Composable
 fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltViewModel()) {
@@ -72,13 +64,11 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
     val context = LocalContext.current
     val getCartProductState = viewModel.getCartState.collectAsStateWithLifecycle()
     val getCartData = getCartProductState.value.success
-
-    val deleteProductCartState = viewModel.deleteProductCartState.collectAsStateWithLifecycle()
+    val deleteProductCartState = viewModel.addToCartState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.getProductsCart()
     }
-
 
     when {
         deleteProductCartState.value.isLoading -> {
@@ -297,7 +287,8 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                                                 cartData.productId, quantity - 1
                                                             )
                                                         } else {
-                                                            viewModel.deleteProductCart(cartData.productId)
+                                                            viewModel.addProductCart(cartData)
+//
                                                         }
 
                                                     }, contentAlignment = Alignment.Center
@@ -380,7 +371,7 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                     },
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(18.dp),
-                                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                    colors = ButtonDefaults.buttonColors(
                                         containerColor = Color(0xFF8c8585),
                                         contentColor = Color.White
                                     )

@@ -2,6 +2,7 @@ package com.example.shoppinguserapp.domen_layer.use_case
 
 import android.net.Uri
 import com.example.shoppinguserapp.domen_layer.data_model.CartModel
+import com.example.shoppinguserapp.domen_layer.data_model.OrderModel
 import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.domen_layer.data_model.ShippingModel
 import com.example.shoppinguserapp.domen_layer.data_model.UserData
@@ -30,13 +31,21 @@ class UseCase @Inject constructor(private val repo: Repo) {
     fun productCartUseCase(cartModel: CartModel) = repo.productCartRepo(cartModel)
     fun checkProductCartUseCase(productId: String) = repo.checkProductCartRepo(productId)
     fun getCartUseCase() = repo.getProductsCartRepo()
-    fun deleteProductCartUseCase(productId: String) = repo.deleteProductCartRepo(productId)
+    fun deleteProductCartUseCase() = repo.deleteProductCartRepo()
     fun updateProductCartUseCase(productId: String, newQty: Int) = repo.updateProductCartRepo(productId, newQty)
 
 
 //shipping
     fun addShippingUseCase(shippingModel: ShippingModel) = repo.addShippingRepo(shippingModel)
     fun getShippingUseCase() = repo.getShippingRepo()
+
+// Order
+
+    fun addOrderUseCase(orderModel: OrderModel) = repo.addOrderRepo(orderModel)
+    fun getOrderUseCase() = repo.getOrderRepo()
+
+
+
 
 
 

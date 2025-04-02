@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.shoppinguserapp.common.ResultState
 import com.example.shoppinguserapp.domen_layer.data_model.CartModel
 import com.example.shoppinguserapp.domen_layer.data_model.Category
+import com.example.shoppinguserapp.domen_layer.data_model.OrderModel
 import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.domen_layer.data_model.ShippingModel
 import com.example.shoppinguserapp.domen_layer.data_model.UserData
@@ -73,13 +74,18 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
     private val _updateProductCartState = MutableStateFlow(UpdateProductCartState())
 
     private val _deleteProductCartState = MutableStateFlow(DeleteProductCartState())
-    val deleteProductCartState = _deleteProductCartState.asStateFlow()
 
     private val _addShippingState = MutableStateFlow(AddShippingState())
     val addShippingState = _addShippingState.asStateFlow()
 
     private val _getShippingState = MutableStateFlow(GetShippingState())
     val getShippingState = _getShippingState.asStateFlow()
+
+    private val _addOrderState = MutableStateFlow(AddOrderState())
+    val addOrderState = _addOrderState.asStateFlow()
+
+    private val _getOrderState = MutableStateFlow(GetOrderState())
+    val getOrderState = _getOrderState.asStateFlow()
 
 
     fun registerUser(userData: UserData) {
@@ -110,7 +116,6 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
         _registerUserState.value = _registerUserState.value.copy(success = null, error = null)
     }
 
-
     fun loginUser(userEmail: String, userPassword: String) {
         viewModelScope.launch(Dispatchers.IO) {
             useCase.loginUser(userEmail, userPassword).collectLatest {
@@ -132,7 +137,6 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
         }
     }
-
 
     fun clearLoginState() {
         _loginUserState.value = _loginUserState.value.copy(error = null, success = null)
@@ -383,7 +387,6 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
     }
 
-
     fun uploadImage(imageUri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
             useCase.uploadImageUseCase(imageUri).collectLatest {
@@ -492,9 +495,9 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
 
     }
 
-    fun deleteProductCart(productId: String) {
+    fun deleteProductCart() {
         viewModelScope.launch(Dispatchers.IO) {
-            useCase.deleteProductCartUseCase(productId).collectLatest {
+            useCase.deleteProductCartUseCase().collectLatest {
                 when (it) {
                     is ResultState.Loading -> {
                         _deleteProductCartState.value = DeleteProductCartState(isLoading = true)
@@ -554,6 +557,53 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
                 }
             }
         }
+    }
+
+    fun addOrder(orderModel: OrderModel) {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.addOrderUseCase(orderModel).collectLatest {
+                when (it) {
+                    is ResultState.Loading -> {
+                        _addOrderState.value = AddOrderState(isLoading = true)
+                    }
+
+                    is ResultState.Success -> {
+                        _addOrderState.value = AddOrderState(success = it.data)
+                    }
+
+                    is ResultState.Error -> {
+                        _addOrderState.value =
+                            AddOrderState(error = it.exception.message.toString())
+                    }
+                }
+            }
+
+        }
+    }
+
+    fun getOrder() {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.getOrderUseCase().collectLatest {
+                when (it) {
+                    is ResultState.Loading -> {
+                        _getOrderState.value = GetOrderState(isLoading = true)
+                    }
+
+                    is ResultState.Success -> {
+                        _getOrderState.value = GetOrderState(success = it.data)
+                    }
+
+                    is ResultState.Error -> {
+                        _getOrderState.value =
+                            GetOrderState(error = it.exception.message.toString())
+                    }
+                }
+            }
+        }
+    }
+
+    fun clearGetOrderState() {
+        _getOrderState.value = _getOrderState.value.copy(success = emptyList())
     }
 
 }
@@ -652,4 +702,15 @@ data class GetShippingState(
     val isLoading: Boolean = false,
     var success: ShippingModel? = null,
     val error: String = ""
+)
+
+data class AddOrderState(
+    val isLoading: Boolean = false, var success: String? = null, var error: String? = null
+)
+
+data class GetOrderState(
+    val isLoading: Boolean = false,
+    var success: List<OrderModel> = emptyList(),
+    val error: String = ""
+
 )

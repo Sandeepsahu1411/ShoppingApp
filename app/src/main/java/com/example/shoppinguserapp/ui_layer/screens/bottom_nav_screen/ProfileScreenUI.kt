@@ -1,8 +1,6 @@
-package com.example.shoppinguserapp.ui_layer.screens
+package com.example.shoppinguserapp.ui_layer.screens.bottom_nav_screen
 
-import android.R.attr.contentDescription
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -51,19 +49,19 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
-import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import coil.compose.AsyncImagePainter.State.Empty.painter
 import coil.compose.SubcomposeAsyncImage
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.domen_layer.data_model.UserData
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
+import com.example.shoppinguserapp.ui_layer.screens.CustomOutlinedTextField
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
 import com.google.firebase.auth.FirebaseAuth
 
@@ -78,6 +76,7 @@ fun ProfileScreenUI(
     val userState = viewModel.getUserDetailsState.collectAsStateWithLifecycle()
     val updateUserState = viewModel.updateUserDetailsState.collectAsStateWithLifecycle()
     val updateImageState = viewModel.uploadImageState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
@@ -156,8 +155,7 @@ fun ProfileScreenUI(
 
                         ) {
                             SubcomposeAsyncImage(
-                                model =
-                                if (imageUrl.isNotEmpty()) imageUrl else R.drawable.default_profile,
+                                model = if (imageUrl.isNotEmpty()) imageUrl else R.drawable.default_profile,
                                 contentDescription = null,
                                 modifier = Modifier
                                     .border(4.dp, Color(0xFFF68B8B), CircleShape)
@@ -183,8 +181,7 @@ fun ProfileScreenUI(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     CircularProgressIndicator(
-                                        modifier = Modifier.size(40.dp),
-                                        color = Color(0xFFF68B8B)
+                                        modifier = Modifier.size(40.dp), color = Color(0xFFF68B8B)
                                     )
                                 }
                             }
@@ -224,16 +221,14 @@ fun ProfileScreenUI(
                         )
 
                     }
-                    Spacer(modifier = Modifier.weight(0.05f))
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 30.dp, vertical = 10.dp)
                             .weight(0.7f),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
@@ -244,51 +239,56 @@ fun ProfileScreenUI(
                                 onValueChange = { firstName = it },
                                 placeholderText = "First Name",
                                 modifier = Modifier.weight(1f),
-                                isEditable = isEditable
+                                isEditable = isEditable,
+                                imeAction = ImeAction.Next
                             )
                             CustomOutlinedTextField(
                                 value = lastName,
                                 onValueChange = { lastName = it },
                                 placeholderText = "Last Name",
                                 modifier = Modifier.weight(1f),
-                                isEditable = isEditable
-
+                                isEditable = isEditable,
+                                imeAction = ImeAction.Next
                             )
                         }
 
                         CustomOutlinedTextField(
                             value = email,
-                            onValueChange = { email = it },
+                            onValueChange = { email = it.lowercase() },
                             placeholderText = "Email",
                             Modifier.fillMaxWidth(),
-                            isEditable = isEditable
+                            isEditable = isEditable,
+                            imeAction = ImeAction.Next,
+                            keyboardType = KeyboardType.Email
                         )
                         CustomOutlinedTextField(
                             value = phoneNumber,
-                            onValueChange = { phoneNumber = it },
+                            onValueChange = {
+                                if (it.length <= 10) {
+                                    phoneNumber = it
+                                }
+                            },
                             placeholderText = "Phone Number",
                             Modifier.fillMaxWidth(),
-                            isEditable = isEditable
-
-
+                            isEditable = isEditable,
+                            imeAction = ImeAction.Next,
+                            keyboardType = KeyboardType.Phone
                         )
                         CustomOutlinedTextField(
                             value = address,
                             onValueChange = { address = it },
                             placeholderText = "Address",
                             Modifier.fillMaxWidth(),
-                            isEditable = isEditable
-
+                            isEditable = isEditable,
                         )
                         if (!isEditable) {
-
                             Button(
                                 onClick = {
                                     showDialog = true
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(18.dp),
-                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFFF68B8B), contentColor = Color.White
                                 )
                             ) {
@@ -320,11 +320,41 @@ fun ProfileScreenUI(
                                     modifier = Modifier.fillMaxWidth(),
                                     textAlign = TextAlign.Center
                                 )
-
+                            }
+                            Button(
+                                onClick = {
+                                    navController.navigate(Routes.OrderScreen)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(18.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFF68B8B), contentColor = Color.White
+                                )
+                            ) {
+                                Text(
+                                    text = "My Orders",
+                                    fontSize = 20.sp,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
                             }
                         } else {
                             Button(
                                 onClick = {
+                                    val emailPattern =
+                                        Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,3}\$")
+                                    if (!emailPattern.matches(email)) {
+                                        Toast.makeText(context, "Invalid email", Toast.LENGTH_SHORT)
+                                            .show()
+                                        return@Button
+                                    }
+                                    if (phoneNumber.length != 10 || !phoneNumber.all { it.isDigit() }) {
+                                        Toast.makeText(
+                                            context,
+                                            "Invalid phone number",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        return@Button
+                                    }
                                     viewModel.updateUserDetails(
                                         firebaseAuth.currentUser?.uid.toString(), UserData(
                                             firstName = firstName,
@@ -341,7 +371,7 @@ fun ProfileScreenUI(
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(18.dp),
-                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFFF68B8B), contentColor = Color.White
                                 )
                             ) {
@@ -359,11 +389,12 @@ fun ProfileScreenUI(
                         modifier = Modifier
                             .fillMaxHeight()
                             .size(150.dp)
-                            .weight(0.2f),
+                            .weight(0.15f),
                         alignment = Alignment.BottomStart
                     )
                 }
-                LogoutDialog(showDialog = showDialog,
+                LogoutDialog(
+                    showDialog = showDialog,
                     onDismiss = { showDialog = false },
                     onLogout = {
                         showDialog = false
@@ -374,7 +405,8 @@ fun ProfileScreenUI(
                             }
                         }
                     },
-                    imageUrl = imageUrl)
+                    imageUrl = imageUrl
+                )
             }
 
         }
@@ -391,79 +423,78 @@ fun LogoutDialog(
         Box(
             modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
         ) {
-            AlertDialog(onDismissRequest = onDismiss, confirmButton = {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
-                        border = BorderStroke(1.dp, Color.Red)
-                    ) {
-                        Text(text = "Cancel", fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Button(
-                        onClick = onLogout,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFF68B8B)
-                        )
-                    ) {
-                        Text(
-                            text = "Log Out", fontWeight = FontWeight.Bold, color = Color.White
-                        )
-                    }
-                }
-            }, title = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    SubcomposeAsyncImage(
-                        model =
-                        if (imageUrl.isNotEmpty()) imageUrl else R.drawable.default_profile,
-                        contentDescription = null,
+            AlertDialog(
+                onDismissRequest = onDismiss, confirmButton = {
+                    Row(
                         modifier = Modifier
-                            .border(4.dp, Color(0xFFF68B8B), CircleShape)
-                            .size(130.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop,
-                        loading = {
-                            Box(
-                                Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(40.dp),
-                                    color = Color(0xFFF68B8B)
-                                )
-                            }
-                        })
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
+                            border = BorderStroke(1.dp, Color.Red)
+                        ) {
+                            Text(text = "Cancel", fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Button(
+                            onClick = onLogout,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFF68B8B)
+                            )
+                        ) {
+                            Text(
+                                text = "Log Out", fontWeight = FontWeight.Bold, color = Color.White
+                            )
+                        }
+                    }
+                }, title = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                        SubcomposeAsyncImage(
+                            model = if (imageUrl.isNotEmpty()) imageUrl else R.drawable.default_profile,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .border(4.dp, Color(0xFFF68B8B), CircleShape)
+                                .size(130.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop,
+                            loading = {
+                                Box(
+                                    Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(40.dp), color = Color(0xFFF68B8B)
+                                    )
+                                }
+                            })
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "LOG OUT",
+                            color = Color(0xFFF68B8B),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                }, text = {
                     Text(
-                        text = "LOG OUT",
-                        color = Color(0xFFF68B8B),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
+                        text = "Do you Really Want To Logout!",
+                        textAlign = TextAlign.Center,
+                        color = if (isSystemInDarkTheme()) Color(0xFFEFCECE) else Color.DarkGray,
+                        fontSize = 16.sp,
+                        modifier = Modifier.fillMaxWidth()
                     )
-                }
-            }, text = {
-                Text(
-                    text = "Do you Really Want To Logout!",
-                    textAlign = TextAlign.Center,
-                    color = if (isSystemInDarkTheme()) Color(0xFFEFCECE) else Color.DarkGray,
-                    fontSize = 16.sp,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }, shape = RoundedCornerShape(20.dp)
+                }, shape = RoundedCornerShape(20.dp)
 
             )
         }

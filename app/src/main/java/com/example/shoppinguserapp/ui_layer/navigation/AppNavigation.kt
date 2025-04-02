@@ -1,43 +1,38 @@
 package com.example.shoppinguserapp.ui_layer.navigation
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavType
 
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import androidx.navigation.toRoute
-import com.example.shoppinguserapp.ui_layer.screens.CartScreenUI
-import com.example.shoppinguserapp.ui_layer.screens.EachCategoryScreenUI
-import com.example.shoppinguserapp.ui_layer.screens.EachProductDetailScreenUI
-import com.example.shoppinguserapp.ui_layer.screens.HomeScreenUI
-import com.example.shoppinguserapp.ui_layer.screens.NotificationScreenUI
-import com.example.shoppinguserapp.ui_layer.screens.PaymentScreenUI
-import com.example.shoppinguserapp.ui_layer.screens.PaymentSuccessScreenUI
-import com.example.shoppinguserapp.ui_layer.screens.ProfileScreenUI
-import com.example.shoppinguserapp.ui_layer.screens.SeeMoreProductScreenUI
-import com.example.shoppinguserapp.ui_layer.screens.ShippingScreenUI
-import com.example.shoppinguserapp.ui_layer.screens.SignInScreenUI
-import com.example.shoppinguserapp.ui_layer.screens.SignUpScreenUI
-import com.example.shoppinguserapp.ui_layer.screens.WishListScreenUI
-import com.google.android.play.integrity.internal.s
+import com.example.shoppinguserapp.ui_layer.permission.NotificationPermission
+import com.example.shoppinguserapp.ui_layer.screens.bottom_nav_screen.CartScreenUI
+import com.example.shoppinguserapp.ui_layer.screens.other_screen.EachCategoryScreenUI
+import com.example.shoppinguserapp.ui_layer.screens.other_screen.EachProductDetailScreenUI
+import com.example.shoppinguserapp.ui_layer.screens.bottom_nav_screen.HomeScreenUI
+import com.example.shoppinguserapp.ui_layer.screens.other_screen.NotificationScreenUI
+import com.example.shoppinguserapp.ui_layer.screens.other_screen.OrderScreenUI
+import com.example.shoppinguserapp.ui_layer.screens.other_screen.PaymentScreenUI
+import com.example.shoppinguserapp.ui_layer.screens.other_screen.PaymentSuccessScreenUI
+import com.example.shoppinguserapp.ui_layer.screens.bottom_nav_screen.ProfileScreenUI
+import com.example.shoppinguserapp.ui_layer.screens.other_screen.SeeMoreProductScreenUI
+import com.example.shoppinguserapp.ui_layer.screens.other_screen.ShippingScreenUI
+import com.example.shoppinguserapp.ui_layer.screens.start_screen.SignInScreenUI
+import com.example.shoppinguserapp.ui_layer.screens.start_screen.SignUpScreenUI
+import com.example.shoppinguserapp.ui_layer.screens.bottom_nav_screen.WishListScreenUI
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -118,6 +113,7 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
                 }
                 navigation<SubNavigation.MainHomeScreen>(startDestination = Routes.HomeScreen) {
                     composable<Routes.HomeScreen> {
+                        NotificationPermission()
                         HomeScreenUI(navController = navController)
                     }
                     composable<Routes.EachProductDetailScreen> {
@@ -172,6 +168,9 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
                     }
                     composable<Routes.NotificationScreen> {
                         NotificationScreenUI(navController)
+                    }
+                    composable<Routes.OrderScreen>{
+                        OrderScreenUI(navController)
                     }
 
 

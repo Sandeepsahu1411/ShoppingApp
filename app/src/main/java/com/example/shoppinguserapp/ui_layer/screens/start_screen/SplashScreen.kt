@@ -1,4 +1,4 @@
-package com.example.shoppinguserapp.ui_layer.screens
+package com.example.shoppinguserapp.ui_layer.screens.start_screen
 
 //import androidx.compose.foundation.Image
 //import androidx.compose.foundation.background

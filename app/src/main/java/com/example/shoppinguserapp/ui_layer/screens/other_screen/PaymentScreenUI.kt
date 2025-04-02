@@ -1,4 +1,4 @@
-package com.example.shoppinguserapp.ui_layer.screens
+package com.example.shoppinguserapp.ui_layer.screens.other_screen
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -15,16 +15,14 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -53,22 +51,48 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.shoppinguserapp.MainActivity
 import com.example.shoppinguserapp.R
+import com.example.shoppinguserapp.domen_layer.data_model.OrderModel
+import com.example.shoppinguserapp.domen_layer.data_model.ProductItem
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
+import java.util.UUID
 
 @Composable
 fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hiltViewModel()) {
 
     val getCartState = viewModel.getCartState.collectAsStateWithLifecycle()
     val getCartData = getCartState.value.success
-    var selectedMethod by remember { mutableStateOf("Online") }
+    val getShippingState = viewModel.getShippingState.collectAsStateWithLifecycle()
+    val getShippingData = getShippingState.value.success
+
+    var selectedMethod by remember { mutableStateOf("") }
     var selectedAddress by remember { mutableStateOf("Same") }
+
+    val addOrderState = viewModel.addOrderState.collectAsStateWithLifecycle()
 
     val activity = LocalContext.current as MainActivity
 
 
     LaunchedEffect(Unit) {
         viewModel.getProductsCart()
+        viewModel.getShippingAddress()
+    }
+    when {
+        addOrderState.value.isLoading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+
+        addOrderState.value.error != null -> {
+            Toast.makeText(LocalContext.current, addOrderState.value.error, Toast.LENGTH_SHORT)
+                .show()
+        }
+
+        addOrderState.value.success != null -> {
+            Toast.makeText(LocalContext.current, "Order Placed Successfully", Toast.LENGTH_SHORT)
+                .show()
+        }
     }
 
     Column(
@@ -83,7 +107,8 @@ fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hilt
             color = if (isSystemInDarkTheme()) Color.White else Color.Black,
         )
         Spacer(modifier = Modifier.height(10.dp))
-        Row(verticalAlignment = Alignment.CenterVertically,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             modifier = Modifier.clickable {
                 navController.navigateUp()
@@ -114,6 +139,8 @@ fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hilt
             }
 
             getCartState.value.success.isNotEmpty() -> {
+                val subTotal = getCartData.sumOf { it.finalPrice.toInt() * it.qty.toInt() }
+
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -134,24 +161,63 @@ fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hilt
                             onMethodSelected = { selectedAddress = it })
                     }
                     item {
-                        val context = LocalContext.current
+
                         Button(
                             onClick = {
+
                                 if (selectedMethod == "Online") {
                                     activity.startPayment(
                                         userName = "sandeep",
                                         userEmail = "Sandeep@gmail.com",
-                                        userPhoneNo = "8773454678"
+                                        userPhoneNo = "8773454678",
+                                        amount = if (subTotal > 3000) subTotal.toDouble() else subTotal.toDouble() + 100
                                     )
                                 } else {
-                                    navController.navigate(Routes.PaymentSuccessScreen)
+                                    val orderProducts = getCartData.map { cartItem ->
+                                        ProductItem(
+                                            productId = cartItem.productId,
+                                            productName = cartItem.name,
+                                            productDes = cartItem.description,
+                                            productQty = cartItem.qty.toString(),
+                                            productPrice = cartItem.price,
+                                            productFinalPrice = cartItem.finalPrice,
+                                            productCategory = cartItem.category,
+                                            productImageUrl = cartItem.imageUrl,
+                                            color = cartItem.color,
+                                            size = cartItem.size
+                                        )
+                                    }
+
+                                    viewModel.deleteProductCart()
+                                    viewModel.addOrder(
+                                        orderModel = OrderModel(
+                                            orderId =  UUID.randomUUID().toString().take(12).uppercase(),
+                                            products = orderProducts,
+                                            totalPrice = if (subTotal > 3000)subTotal.toString() else (subTotal + 100).toString(),
+                                            transactionMethod = selectedMethod,
+                                            transactionId = "123456789",
+                                            userAddress = getShippingData?.address.toString(),
+                                            city = getShippingData?.city.toString(),
+                                            countryRegion = getShippingData?.countryRegion.toString(),
+                                            userEmail = getShippingData?.email.toString(),
+                                            firstName = getShippingData?.firstName.toString(),
+                                            lastName = getShippingData?.lastName.toString(),
+                                            mobileNo = getShippingData?.mobileNo.toString(),
+                                            postalCode = getShippingData?.pinCode.toString(),
+                                        )
+                                    )
+                                    navController.navigate(Routes.PaymentSuccessScreen) {
+                                        popUpTo(Routes.HomeScreen) {
+                                            inclusive = false
+                                        }
+                                    }
                                 }
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 15.dp),
                             shape = RoundedCornerShape(15.dp),
-                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF8c8585), contentColor = Color.White
                             )
                         ) {
@@ -200,7 +266,8 @@ fun PaymentMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(5.dp)
 
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable { onMethodSelected("Online") }) {
                     RadioButton(
                         selected = selectedMethod == "Online",
@@ -237,7 +304,7 @@ fun PaymentMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
                     modifier = Modifier
                         .padding(5.dp), colors = CardDefaults.cardColors(
                         containerColor =
-                        if (isSystemInDarkTheme()) Color(0x7EF5F2F1) else Color(0xFFF5F2F1),
+                            if (isSystemInDarkTheme()) Color(0x7EF5F2F1) else Color(0xFFF5F2F1),
 
 
                         )
@@ -265,7 +332,8 @@ fun PaymentMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
                 }
 
                 HorizontalDivider(thickness = 2.dp)
-                Row(verticalAlignment = Alignment.CenterVertically,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable { onMethodSelected("COD") }) {
                     RadioButton(
                         selected = selectedMethod == "COD",
@@ -310,7 +378,8 @@ fun BillingAddress(selectedMethod: String, onMethodSelected: (String) -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(0.dp)
 
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable { onMethodSelected("Same") }) {
                     RadioButton(
                         selected = selectedMethod == "Same",
@@ -332,7 +401,8 @@ fun BillingAddress(selectedMethod: String, onMethodSelected: (String) -> Unit) {
                     )
                 }
                 HorizontalDivider(thickness = 2.dp)
-                Row(verticalAlignment = Alignment.CenterVertically,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable { onMethodSelected("Different") }) {
                     RadioButton(
                         selected = selectedMethod == "Different",

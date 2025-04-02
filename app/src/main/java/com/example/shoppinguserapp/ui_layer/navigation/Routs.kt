@@ -60,4 +60,7 @@ sealed class Routes {
 
     @Serializable
     object NotificationScreen : Routes()
+
+    @Serializable
+    object OrderScreen : Routes()
 }

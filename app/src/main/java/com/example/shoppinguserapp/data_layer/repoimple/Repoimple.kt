@@ -4,6 +4,7 @@ import android.net.Uri
 import com.example.shoppinguserapp.common.ADD_TO_CART
 import com.example.shoppinguserapp.common.ADD_TO_CART_BY_USER
 import com.example.shoppinguserapp.common.CATEGORY
+import com.example.shoppinguserapp.common.ORDER
 import com.example.shoppinguserapp.common.PRODUCTS
 import com.example.shoppinguserapp.common.ResultState
 import com.example.shoppinguserapp.common.SHIPPING
@@ -12,6 +13,7 @@ import com.example.shoppinguserapp.common.WISHLIST
 import com.example.shoppinguserapp.common.WISHLIST_BY_USER
 import com.example.shoppinguserapp.domen_layer.data_model.CartModel
 import com.example.shoppinguserapp.domen_layer.data_model.Category
+import com.example.shoppinguserapp.domen_layer.data_model.OrderModel
 import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.domen_layer.data_model.ShippingModel
 import com.example.shoppinguserapp.domen_layer.data_model.UserData
@@ -356,20 +358,21 @@ class Repoimple @Inject constructor(
 
     }
 
-    override fun deleteProductCartRepo(productId: String): Flow<ResultState<String>> =
+    override fun deleteProductCartRepo(): Flow<ResultState<String>> =
         callbackFlow {
             trySend(ResultState.Loading)
             firebaseFireStore.collection(ADD_TO_CART)
                 .document(firebaseAuth.currentUser?.uid.toString())
-                .collection(ADD_TO_CART_BY_USER)
-                .whereEqualTo("productId", productId).get().addOnSuccessListener {
-                    if (it.documents.isNotEmpty()) {
+                .collection(ADD_TO_CART_BY_USER).get().addOnSuccessListener {
+                    it.documents.forEach {
                         firebaseFireStore.collection(ADD_TO_CART)
                             .document(firebaseAuth.currentUser?.uid.toString())
-                            .collection(ADD_TO_CART_BY_USER).document(it.documents[0].id)
-                            .delete()
+                            .collection(ADD_TO_CART_BY_USER).document(it.id).delete()
                             .addOnSuccessListener {
-                                trySend(ResultState.Success("Removed from Cart"))
+                                trySend(ResultState.Success("Cart Cleared"))
+                                close()
+                            }.addOnFailureListener {
+                                trySend(ResultState.Error(it))
                                 close()
                             }
                     }
@@ -445,6 +448,56 @@ class Repoimple @Inject constructor(
         awaitClose {
             close()
         }
+
+    }
+
+    override fun addOrderRepo(orderModel: OrderModel): Flow<ResultState<String>> = callbackFlow {
+        trySend(ResultState.Loading)
+        firebaseFireStore.collection(ORDER)
+            .add(orderModel)
+            .addOnSuccessListener {
+                trySend(ResultState.Success("Order Placed"))
+            }.addOnFailureListener {
+                trySend(ResultState.Error(it))
+            }
+        awaitClose {
+            close()
+        }
+    }
+
+    override fun getOrderRepo(): Flow<ResultState<List<OrderModel>>> = callbackFlow {
+        trySend(ResultState.Loading)
+        firebaseFireStore.collection(ORDER).get().addOnSuccessListener {
+            val data = it.documents.mapNotNull {
+                it.toObject(OrderModel::class.java)
+            }
+            trySend(ResultState.Success(data))
+        }.addOnFailureListener {
+            trySend(ResultState.Error(it))
+        }
+        awaitClose {
+            close()
+        }
+
+
+//        trySend(ResultState.Loading)
+//        firebaseFireStore.collection(ORDER)
+//            .document(firebaseAuth.currentUser?.uid.toString())
+//            .get()
+//            .addOnSuccessListener {
+//                val data = it.toObject(OrderModel::class.java)
+//                trySend(ResultState.Success(data.let {
+//                    data ?: OrderModel()
+//                }))
+//
+//
+//            }.addOnFailureListener {
+//                trySend(ResultState.Error(it))
+//            }
+//        awaitClose {
+//            close()
+//        }
+
 
     }
 

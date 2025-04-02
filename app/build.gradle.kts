@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -93,6 +95,7 @@ dependencies {
     //razorpay  integration
     implementation ("com.razorpay:checkout:1.6.41")
 
+    implementation ("com.google.accompanist:accompanist-permissions:0.32.0")
 
 
 

@@ -68,7 +68,12 @@ fun BottomNavigation(
                         .clickable {
                             onItemSelected(index)
                             when (index) {
-                                0 -> navController.navigate(Routes.HomeScreen)
+                                0 -> navController.navigate(Routes.HomeScreen) {
+                                    popUpTo(0) {
+                                        inclusive = true
+                                    }
+                                }
+
                                 1 -> navController.navigate(Routes.WishListScreen)
                                 2 -> navController.navigate(Routes.CartScreen)
                                 3 -> navController.navigate(Routes.ProfileScreen)

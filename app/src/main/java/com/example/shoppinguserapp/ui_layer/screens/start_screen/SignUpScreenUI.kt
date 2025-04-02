@@ -1,4 +1,4 @@
-package com.example.shoppinguserapp.ui_layer.screens
+package com.example.shoppinguserapp.ui_layer.screens.start_screen
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedIconButton
@@ -33,6 +34,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,6 +45,8 @@ import androidx.navigation.NavController
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.domen_layer.data_model.UserData
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
+import com.example.shoppinguserapp.ui_layer.screens.CustomOutlinedTextField
+import com.example.shoppinguserapp.ui_layer.screens.SuccessDialog
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
 
 @Composable
@@ -92,10 +97,9 @@ fun SignUpScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: Nav
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .weight(0.5f)
-
                         .padding(30.dp)
                         .align(Alignment.Bottom),
-                    color =if(isSystemInDarkTheme()) Color.White else Color.Black,
+                    color = if (isSystemInDarkTheme()) Color.White else Color.Black,
 
                     )
                 Image(
@@ -127,13 +131,16 @@ fun SignUpScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: Nav
                         value = firstName,
                         onValueChange = { firstName = it },
                         placeholderText = "First Name",
-                        modifier = Modifier.weight(1f)
-                    )
+                        modifier = Modifier.weight(1f),
+                        imeAction = ImeAction.Next,
+
+                        )
                     CustomOutlinedTextField(
                         value = lastName,
                         onValueChange = { lastName = it },
                         placeholderText = "Last Name",
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        imeAction = ImeAction.Next,
                     )
                 }
 
@@ -141,25 +148,36 @@ fun SignUpScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: Nav
                     value = email,
                     onValueChange = { email = it },
                     placeholderText = "Email",
-                    Modifier.fillMaxWidth()
+                    Modifier.fillMaxWidth(),
+                    imeAction = ImeAction.Next,
+                    keyboardType = KeyboardType.Email,
                 )
                 CustomOutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
                     placeholderText = "Create Password",
-                    Modifier.fillMaxWidth(), isPassword = true
-
+                    Modifier.fillMaxWidth(), isPassword = true,
+                    imeAction = ImeAction.Next,
+                    keyboardType = KeyboardType.Password,
                 )
                 CustomOutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
                     placeholderText = "Confirm Password",
-                    Modifier.fillMaxWidth(), isPassword = true
+                    Modifier.fillMaxWidth(), isPassword = true,
+                    keyboardType = KeyboardType.Password,
                 )
                 Button(
                     onClick = {
                         if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-                            Toast.makeText(context, "All fields are required", Toast.LENGTH_SHORT)
+                            Toast.makeText(context, "Required All fields", Toast.LENGTH_SHORT)
+                                .show()
+                            return@Button
+                        }
+                        val emailPattern =
+                            Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,3}\$")
+                        if (!emailPattern.matches(email)) {
+                            Toast.makeText(context, "Invalid email", Toast.LENGTH_SHORT)
                                 .show()
                             return@Button
                         }
@@ -167,20 +185,22 @@ fun SignUpScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: Nav
                             Toast.makeText(context, "Password doesn't match", Toast.LENGTH_SHORT)
                                 .show()
                             return@Button
-                        } else {
-                            val data = UserData(
-                                firstName = firstName,
-                                lastName = lastName,
-                                email = email,
-                                password = confirmPassword
-                            )
-                            viewModel.registerUser(userData = data)
                         }
+                        val data = UserData(
+                            firstName = firstName,
+                            lastName = lastName,
+                            email = email,
+                            password = confirmPassword
+                        )
+                        viewModel.registerUser(userData = data)
+
 
                     },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
                     shape = RoundedCornerShape(18.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFF68B8B),
                         contentColor = Color.White
                     )
@@ -197,7 +217,11 @@ fun SignUpScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: Nav
                     horizontalArrangement = Arrangement.Center
                 ) {
 
-                    Text(text = "Already have an account? ", color =if(isSystemInDarkTheme())Color.White else Color.Gray, fontSize = 16.sp)
+                    Text(
+                        text = "Already have an account? ",
+                        color = if (isSystemInDarkTheme()) Color.White else Color.Gray,
+                        fontSize = 16.sp
+                    )
                     Text(
                         text = "Login",
                         color = Color(0xFFF68B8B),

@@ -1,4 +1,4 @@
-package com.example.shoppinguserapp.ui_layer.screens
+package com.example.shoppinguserapp.ui_layer.screens.bottom_nav_screen
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -56,6 +56,8 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
+import com.example.shoppinguserapp.ui_layer.screens.BannerSection
+import com.example.shoppinguserapp.ui_layer.screens.SearchBox
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

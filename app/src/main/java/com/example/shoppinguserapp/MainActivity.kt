@@ -62,11 +62,12 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
 
     }
-    fun startPayment(
-        userName: String ,
-        userEmail : String,
-        userPhoneNo : String
 
+    fun startPayment(
+        userName: String,
+        userEmail: String,
+        userPhoneNo: String,
+        amount: Double
 
     ) {
         /*
@@ -85,7 +86,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
             options.put("theme.color", "#f68b8b");
             options.put("currency", "INR");
 
-            options.put("amount", "50000")
+            options.put("amount", amount * 100)
 
             val retryObj = JSONObject();
             retryObj.put("enabled", true);
@@ -107,8 +108,8 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
     override fun onPaymentSuccess(p0: String?, p1: PaymentData?) {
         Toast.makeText(this, "Payment Success", Toast.LENGTH_SHORT).show()
 
-        navController.navigate(Routes.HomeScreen){
-            popUpTo(0){
+        navController.navigate(Routes.HomeScreen) {
+            popUpTo(0) {
                 inclusive = true
             }
         }
