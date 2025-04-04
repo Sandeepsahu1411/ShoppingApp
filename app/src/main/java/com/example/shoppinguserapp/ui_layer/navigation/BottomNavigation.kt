@@ -105,7 +105,7 @@ fun BottomNavigation(
                             Text(
                                 text = item.title,
                                 color = if (selectedItemIndex == index) Color.Companion.Black else Color.Companion.Gray,
-                                fontSize = 16.sp
+                                fontSize = 14.sp
                             )
                         }
                     }

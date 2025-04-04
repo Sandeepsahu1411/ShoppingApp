@@ -7,50 +7,79 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Alignment
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.zIndex
 
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.shoppinguserapp.domen_layer.data_model.CartModel
+import com.example.shoppinguserapp.domen_layer.data_model.OrderModel
+import com.example.shoppinguserapp.domen_layer.data_model.ProductItem
+import com.example.shoppinguserapp.domen_layer.data_model.Products
+import com.example.shoppinguserapp.domen_layer.data_model.ShippingModel
 import com.example.shoppinguserapp.ui.theme.ShoppingUserAppTheme
 import com.example.shoppinguserapp.ui_layer.navigation.AppNavigation
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
+import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.gson.Gson
 import com.razorpay.Checkout
 import com.razorpay.PayloadHelper
 import com.razorpay.PaymentData
 import com.razorpay.PaymentResultListener
 import com.razorpay.PaymentResultWithDataListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.util.UUID
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
+    private lateinit var navController: NavController
+
     @Inject
     lateinit var firebaseAuth: FirebaseAuth
 
-    lateinit var navController: NavController
+    var productId: String? = null
+    var productData: Products? = null
+    var productQty: String = "1"
+    var getCartData: List<CartModel> = emptyList()
+    var getShippingData: ShippingModel? = null
+    var subTotal: Int = 0
+    var productColor: String = ""
+    var productSize: String = ""
+
+    private val viewModel: AppViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
         enableEdgeToEdge()
         setContent {
-
+            navController = rememberNavController()
             ShoppingUserAppTheme {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding()
                 ) {
-                    AppNavigation(firebaseAuth)
+                    AppNavigation(firebaseAuth , navController = navController as NavHostController)
                 }
             }
         }
@@ -67,12 +96,29 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
         userName: String,
         userEmail: String,
         userPhoneNo: String,
-        amount: Double
+        amount: Double,
+        productId: String?,
+        productSize: String,
+        productColor: String,
+        productData: Products?,
+        productQty: String,
+        cartData: List<CartModel>,
+        shippingData: ShippingModel?,
+        subTotal: Int
 
     ) {
         /*
         *  You need to pass the current activity to let Razorpay create CheckoutActivity
         * */
+        this.productId = productId
+        this.productData = productData
+        this.productQty = productQty
+        this.getCartData = cartData
+        this.getShippingData = shippingData
+        this.subTotal = subTotal
+        this.productColor = productColor
+        this.productSize = productSize
+
         val activity: Activity = this
         val co = Checkout()
 
@@ -106,13 +152,72 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
     }
 
     override fun onPaymentSuccess(p0: String?, p1: PaymentData?) {
-        Toast.makeText(this, "Payment Success", Toast.LENGTH_SHORT).show()
+        val orderProducts = mutableListOf<ProductItem>()
 
-        navController.navigate(Routes.HomeScreen) {
-            popUpTo(0) {
-                inclusive = true
+        if (!productId.isNullOrEmpty() && productData != null) {
+            orderProducts.add(
+                ProductItem(
+                    productId = productData?.productId ?: "",
+                    productName = productData?.name ?: "",
+                    productDes = productData?.description ?: "",
+                    productQty = productQty,
+                    productPrice = productData?.price ?: "",
+                    productFinalPrice = productData?.finalPrice ?: "",
+                    productCategory = productData?.category ?: "",
+                    productImageUrl = productData?.image ?: "",
+                    color = productColor,
+                    size = productSize
+                )
+            )
+        }
+        else if (getCartData.isNotEmpty()) {
+            orderProducts.addAll(
+                getCartData.map { cartItem ->
+                    ProductItem(
+                        productId = cartItem.productId,
+                        productName = cartItem.name,
+                        productDes = cartItem.description,
+                        productQty = cartItem.qty.toString(),
+                        productPrice = cartItem.price,
+                        productFinalPrice = cartItem.finalPrice,
+                        productCategory = cartItem.category,
+                        productImageUrl = cartItem.imageUrl,
+                        color = cartItem.color,
+                        size = cartItem.size
+                    )
+                }
+            )
+        }
+
+        viewModel.addOrder(
+            orderModel = OrderModel(
+                orderId = UUID.randomUUID().toString().take(12)
+                    .uppercase(),
+                products = orderProducts,
+                totalPrice = if (subTotal > 3000) subTotal.toString() else (subTotal + 100).toString(),
+                transactionMethod = "Online",
+                transactionId = p1?.paymentId.toString(),
+                userAddress = getShippingData?.address.toString(),
+                city = getShippingData?.city.toString(),
+                countryRegion = getShippingData?.countryRegion.toString(),
+                userEmail = getShippingData?.email.toString(),
+                firstName = getShippingData?.firstName.toString(),
+                lastName = getShippingData?.lastName.toString(),
+                mobileNo = getShippingData?.mobileNo.toString(),
+                postalCode = getShippingData?.pinCode.toString(),
+            )
+        )
+
+        if (productId.isNullOrEmpty()) {
+            viewModel.deleteProductCart()
+        }
+        navController.navigate(Routes.PaymentSuccessScreen){
+            popUpTo(Routes.HomeScreen){
+                inclusive = false
             }
         }
+
+
     }
 
     override fun onPaymentError(p0: Int, p1: String?, response: PaymentData?) {

@@ -1,7 +1,9 @@
 package com.example.shoppinguserapp.ui_layer.screens.bottom_nav_screen
 
+import android.R.attr.data
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -51,6 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.domen_layer.data_model.Products
@@ -71,13 +74,14 @@ fun WishListScreenUI(
     val wishlistData = getWishlistState.value.success
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Row(modifier = Modifier.weight(0.2f)) {
-            Row {
-                Column(
+        Row(modifier = Modifier.weight(0.15f)) {
+
+            Column(
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .padding(start = 20.dp),
-                    verticalArrangement = Arrangement.Center
+                        .fillMaxSize()
+                        .weight(0.6f),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = "My Wishlist",
@@ -91,17 +95,16 @@ fun WishListScreenUI(
                     painter = painterResource(id = R.drawable.sign_top),
                     contentDescription = null,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .size(200.dp),
+                        .weight(0.4f)
+                        .fillMaxSize(),
                     alignment = Alignment.TopEnd
                 )
-            }
+
         }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-
-                .weight(0.8f), horizontalAlignment = Alignment.CenterHorizontally
+                .weight(0.85f), horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when {
                 getWishlistState.value.isLoading -> {
@@ -160,53 +163,33 @@ fun WishlistItem(navController: NavController, product: Products, viewModel: App
             },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = if (isSystemInDarkTheme()) Color.DarkGray else Color.White)
     ) {
         Row(
             modifier = Modifier.padding(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (product.image.isNotEmpty()) {
-                var isLoading by remember { mutableStateOf(true) }
-
-                Box(
-                    modifier = Modifier,
-                    contentAlignment = Alignment.Center
-                ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(product.image)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
+            SubcomposeAsyncImage(
+                model = if (product.image.isNotEmpty()) product.image else R.drawable.product_frock,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(50.dp, 80.dp)
+                    .clip(RoundedCornerShape(10.dp)),
+                loading = {
+                    Box(
                         modifier = Modifier
-                            .size(50.dp, 80.dp)
-                            .clip(RoundedCornerShape(8.dp)),
-                        onSuccess = { isLoading = false },
-                        onError = { isLoading = false }
-                    )
-                    if (isLoading) {
+                            .fillMaxSize()
+                            .background(Color.LightGray)
+                    ) {
                         CircularProgressIndicator(
                             modifier = Modifier
-                                .size(20.dp)
+                                .size(40.dp)
                                 .align(Alignment.Center),
                             color = Color.Red
                         )
                     }
-                }
-
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.cheakout_img),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(50.dp, 80.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                )
-            }
-
+                })
 
             Spacer(modifier = Modifier.width(16.dp))
 

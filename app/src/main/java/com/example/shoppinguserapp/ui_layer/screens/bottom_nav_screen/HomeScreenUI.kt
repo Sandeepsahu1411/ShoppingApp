@@ -24,8 +24,10 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.NotificationAdd
 import androidx.compose.material3.CircularProgressIndicator
@@ -79,7 +81,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(14.dp)
         ) {
 
             Box(modifier = Modifier.weight(1f)) {
@@ -120,17 +122,18 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
+                                .padding(horizontal = 14.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = "Categories",
-                                fontSize = 28.sp,
+                                fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.weight(1f)
                             )
-                            Text(text = "See All",
-                                fontSize = 18.sp,
+                            Text(
+                                text = "See All",
+                                fontSize = 16.sp,
                                 color = Color(0xFFF68B8B),
                                 modifier = Modifier.clickable { seeAllCategory = !seeAllCategory })
                         }
@@ -153,7 +156,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                     ) {
                                         Box(
                                             modifier = Modifier
-                                                .size(80.dp)
+                                                .size(70.dp)
                                                 .clip(CircleShape)
                                                 .background(Color.White, shape = CircleShape)
                                                 .border(1.dp, Color.Gray, shape = CircleShape)
@@ -204,7 +207,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                             }
 
                                         }
-                                        Text(text = category.name)
+                                        Text(text = category.name, fontSize = 14.sp)
                                     }
                                 }
                             }
@@ -230,7 +233,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                         ) {
                                             Box(
                                                 modifier = Modifier
-                                                    .size(80.dp)
+                                                    .size(70.dp)
                                                     .clip(CircleShape)
                                                     .background(Color.White, shape = CircleShape)
                                                     .border(1.dp, Color.Gray, shape = CircleShape)
@@ -281,7 +284,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                             }
                                             Spacer(modifier = Modifier.height(4.dp))
 
-                                            Text(text = category.name)
+                                            Text(text = category.name, fontSize = 14.sp)
                                         }
                                     }
 
@@ -296,17 +299,18 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp, 8.dp),
+                                .padding(14.dp, 5.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = "Flash Sale",
-                                fontSize = 28.sp,
+                                fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.weight(1f)
                             )
-                            Text(text = "See All",
-                                fontSize = 18.sp,
+                            Text(
+                                text = "See All",
+                                fontSize = 16.sp,
                                 color = Color(0xFFF68B8B),
                                 modifier = Modifier.clickable {
                                     navController.navigate(Routes.SeeMoreProductsScreen)
@@ -316,8 +320,10 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                     //Product Lazy Row
                     item {
                         LazyRow(
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 10.dp),
+                            contentPadding = PaddingValues(horizontal = 14.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(homeState.products?.filter { it.category == "Gown" || it.category == "Top" || it.category == "Dress" }
@@ -334,7 +340,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .height(200.dp)
+                                            .height(180.dp)
                                             .fillMaxWidth()
                                             .clip(RoundedCornerShape(10.dp))
                                             .border(
@@ -345,9 +351,10 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                     ) {
                                         if (product.image.isNotEmpty()) {
                                             Box(modifier = Modifier.fillMaxSize()) {
-                                                SubcomposeAsyncImage(model = ImageRequest.Builder(
-                                                    LocalContext.current
-                                                ).data(product.image).crossfade(true).build(),
+                                                SubcomposeAsyncImage(
+                                                    model = ImageRequest.Builder(
+                                                        LocalContext.current
+                                                    ).data(product.image).crossfade(true).build(),
                                                     contentDescription = null,
                                                     contentScale = ContentScale.Crop,
                                                     modifier = Modifier.fillMaxSize(),
@@ -381,6 +388,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .height(150.dp)
+                                            .verticalScroll(rememberScrollState())
                                             .border(
                                                 2.dp,
                                                 Color.LightGray,
@@ -388,69 +396,72 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                             )
                                             .padding(8.dp)
                                     ) {
-                                        Text(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .weight(0.35f),
-                                            text = product.name,
-                                            color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color(
-                                                0xFF8C8585
-                                            ),
-                                            lineHeight = 16.sp,
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Bold
 
-                                        )
-                                        Column(
-                                            Modifier.weight(0.65f)
-                                        ) {
-                                            Text(text = product.category, fontSize = 16.sp)
-                                            Row {
-                                                Text(
-                                                    text = "Rs:",
-                                                    color = Color(0xFFFF4081),
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                                Text(
-                                                    text = " ${product.finalPrice}",
-                                                    color = Color(0xFFFF4081),
-                                                    fontSize = 20.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                            }
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
+                                            Text(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .padding(top = 4.dp)
+                                                    .weight(0.35f),
+                                                text = product.name,
+                                                color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color(
+                                                    0xFF8C8585
+                                                ),
+                                                lineHeight = 16.sp,
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Bold
+
+                                            )
+                                            Column(
+                                                Modifier.weight(0.65f)
                                             ) {
-                                                Text(
-                                                    text = "Rs:",
-                                                    color = if (isSystemInDarkTheme()) Color.White else Color(
-                                                        0xFFFF4081
-                                                    ),
+                                                Text(text = product.category, fontSize = 14.sp)
+                                                Row {
+                                                    Text(
+                                                        text = "Rs:",
+                                                        color = Color(0xFFFF4081),
+                                                        fontSize = 14.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                    Text(
+                                                        text = " ${product.finalPrice}",
+                                                        color = Color(0xFFFF4081),
+                                                        fontSize = 18.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                }
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(top = 4.dp)
+                                                ) {
+                                                    Text(
+                                                        text = "Rs:",
+                                                        color = if (isSystemInDarkTheme()) Color.White else Color(
+                                                            0xFFFF4081
+                                                        ),
 
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                                Text(
-                                                    text = " ${product.price} ",
-                                                    fontSize = 16.sp,
-                                                    textDecoration = TextDecoration.LineThrough
-                                                )
-                                                Spacer(modifier = Modifier.width(3.dp))
-                                                Text(
-                                                    text = "20% off",
-                                                    color = Color(0xFFFF4081),
-                                                    fontSize = 12.sp,
-                                                    fontWeight = FontWeight.Bold
+                                                        fontSize = 14.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                    Text(
+                                                        text = " ${product.price} ",
+                                                        fontSize = 16.sp,
+                                                        textDecoration = TextDecoration.LineThrough
+                                                    )
+                                                    Spacer(modifier = Modifier.width(3.dp))
+                                                    Text(
+                                                        text = "20% off",
+                                                        color = Color(0xFFFF4081),
+                                                        fontSize = 12.sp,
+                                                        fontWeight = FontWeight.Bold
 
-                                                )
+                                                    )
+                                                }
+
                                             }
 
-                                        }
+
                                     }
                                 }
                             }

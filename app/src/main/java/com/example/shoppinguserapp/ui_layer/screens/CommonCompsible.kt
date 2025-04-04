@@ -56,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -66,6 +67,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.shoppinguserapp.R
@@ -105,7 +107,7 @@ fun CustomOutlinedTextField(
             Text(
                 text = placeholderText,
                 color = if (isSystemInDarkTheme()) Color(0xFFEFCECE) else Color.Gray,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodySmall
             )
         },
         prefix = prefix,
@@ -114,7 +116,7 @@ fun CustomOutlinedTextField(
             .height(60.dp),
         maxLines = maxLines,
         readOnly = !isEditable,
-        textStyle = TextStyle(fontSize = 18.sp),
+        textStyle = TextStyle(fontSize = 16.sp) ,
         visualTransformation = if (isPassword && !passwordVisibility) PasswordVisualTransformation() else VisualTransformation.None,
         trailingIcon = trailingIcon ?: if (isPassword) {
             {
@@ -158,6 +160,65 @@ fun CustomOutlinedTextField(
     )
 }
 
+@Composable
+fun CustomButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+    textModifier: Modifier = Modifier.padding(vertical = 3.dp),
+    containerColor: Color = Color(0xFFF68B8B),
+    contentColor: Color = Color.White,
+    shape: Shape = RoundedCornerShape(10.dp),
+    fontSize: TextUnit = 18.sp,
+    enabled: Boolean = true
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        shape = shape,
+        enabled = enabled,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = containerColor,
+            contentColor = contentColor
+        )
+    ) {
+        Text(
+            text = text,
+            fontSize = fontSize,
+            modifier = textModifier,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+@Composable
+fun CustomOutlineButton(
+    text: String,
+    onClick: () -> Unit,
+    border: BorderStroke? = BorderStroke(1.dp, Color(0xFFF68B8B))
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            ,
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = Color.Transparent,
+            contentColor = Color(0xFFF68B8B)
+
+        ),
+        border = border,
+        shape = RoundedCornerShape(10.dp),
+    ) {
+        Text(
+            text = text,
+            fontSize = 16.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(vertical = 3.dp),
+
+
+        )
+    }
+}
 
 @Composable
 fun SuccessDialog(showDialog: Boolean, onDismiss: () -> Unit) {
@@ -242,23 +303,7 @@ fun animation(): Float {
     return scale
 }
 
-@Composable
-fun CartHeaderRow() {
-    val headers = listOf("Items" to 0.55f, "Price" to 0.2f, "QTY" to 0.15f, "Total" to 0.15f)
 
-    Row {
-        headers.forEach { (title, weight) ->
-            Text(
-                text = title,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
-
-                modifier = Modifier.weight(weight)
-            )
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -267,7 +312,7 @@ fun SearchBox(
     onValueChange: (String) -> Unit
 ) {
     OutlinedTextField(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().height(55.dp),
         value = value,
         onValueChange = onValueChange,
         placeholder = { Text(text = "Search", color = Color.Gray) },
@@ -278,6 +323,7 @@ fun SearchBox(
                 modifier = Modifier.size(30.dp),
             )
         },
+
         singleLine = true,
         shape = RoundedCornerShape(12.dp),
         colors = TextFieldDefaults.textFieldColors(
@@ -329,7 +375,7 @@ fun BannerSection() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp),
+                .padding(bottom = 8.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {

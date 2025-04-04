@@ -70,6 +70,7 @@ import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.domen_layer.data_model.toCartModel
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
+import com.example.shoppinguserapp.ui_layer.screens.CustomButton
 
 @Composable
 fun EachProductDetailScreenUI(
@@ -124,8 +125,9 @@ fun EachProductDetailScreenUI(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                AsyncImage(model = ImageRequest.Builder(LocalContext.current)
-                                    .data(productData.image).crossfade(true).build(),
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(productData.image).crossfade(true).build(),
                                     contentDescription = null,
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier.fillMaxSize(),
@@ -265,23 +267,27 @@ fun EachProductDetailScreenUI(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             listOf("M", "L", "XL", "XXL").forEach { size ->
-                                Box(modifier = Modifier
-                                    .border(
-                                        1.dp,
-                                        if (selectedSize == size) Color.Blue else Color.Gray,
-                                        RoundedCornerShape(8.dp)
-                                    )
-                                    .background(
-                                        if (selectedSize == size) Color.LightGray else Color.Transparent,
-                                        RoundedCornerShape(8.dp)
-                                    )
-                                    .clickable { selectedSize = size }
-                                    .padding(horizontal = 10.dp, vertical = 8.dp)) {
+                                Box(
+                                    modifier = Modifier
+                                        .border(
+                                            1.dp,
+                                            Color(0xfff68b8b),
+                                            RoundedCornerShape(8.dp)
+                                        )
+                                        .background(
+                                            if (selectedSize == size) if (isSystemInDarkTheme()) Color.Blue else Color(
+                                                0xfff68b8b
+                                            ) else Color.Transparent,
+                                            RoundedCornerShape(8.dp)
+                                        )
+                                        .clickable { selectedSize = size }
+                                        .padding(horizontal = 10.dp, vertical = 8.dp)) {
                                     Text(text = size)
                                 }
                             }
                             Spacer(modifier = Modifier.weight(1f))
-                            IncreaseDecreesRow(count,
+                            IncreaseDecreesRow(
+                                count,
                                 onIncrease = { count++ },
                                 onDecrease = { if (count > 1) count-- })
                         }
@@ -297,18 +303,25 @@ fun EachProductDetailScreenUI(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             listOf(
-                                Color.Green,Color(0xFFFDE6DC), Color.Yellow, Color.Blue, Color.Red, Color.Black, Color.Magenta
+                                Color.Green,
+                                Color(0xFFFDE6DC),
+                                Color.Yellow,
+                                Color.Blue,
+                                Color.Red,
+                                Color.Black,
+                                Color.Magenta
                             ).forEach { color ->
-                                Box(modifier = Modifier
-                                    .size(if (selectedColor == color) 40.dp else 35.dp)
-                                    .clickable { selectedColor = color }
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(color, RoundedCornerShape(8.dp))
-                                    .border(
-                                        if (selectedColor == color) 1.dp else 0.dp,
-                                        color = Color.Gray,
-                                        shape = RoundedCornerShape(8.dp)
-                                    ))
+                                Box(
+                                    modifier = Modifier
+                                        .size(if (selectedColor == color) 40.dp else 35.dp)
+                                        .clickable { selectedColor = color }
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(color, RoundedCornerShape(8.dp))
+                                        .border(
+                                            if (selectedColor == color) 1.dp else 0.dp,
+                                            color = Color.Gray,
+                                            shape = RoundedCornerShape(8.dp)
+                                        ))
                             }
                         }
                         // Specification Section
@@ -404,7 +417,8 @@ fun ButtonsContent(
     Column(
         modifier = Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Button(
+        CustomButton(
+            text = "Buy Now",
             onClick = {
                 navController.navigate(
                     Routes.ShippingScreen(
@@ -413,17 +427,7 @@ fun ButtonsContent(
                     )
                 )
             },
-            colors = ButtonDefaults.buttonColors(
-                Color(0xfff68b8b), contentColor = Color.White
-            ),
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(15.dp)
-        ) {
-            Text(
-                text = "Buy now", fontSize = 20.sp, modifier = Modifier.padding(vertical = 5.dp)
-            )
-        }
-
+        )
 
         Button(
             onClick = {
@@ -431,12 +435,12 @@ fun ButtonsContent(
                     navController.navigate(Routes.CartScreen)
                 } else {
 //                    if (selectedSize.isNotEmpty() && selectedColor != Color.Transparent) {
-                        val cartModel = productsData?.toCartModel(
-                            qty = count,
-                            color = colorToHex(selectedColor),
-                            size = selectedSize
-                        )
-                        viewModel.addProductCart(cartModel!!)
+                    val cartModel = productsData?.toCartModel(
+                        qty = count,
+                        color = colorToHex(selectedColor),
+                        size = selectedSize
+                    )
+                    viewModel.addProductCart(cartModel!!)
 
 //                    } else {
 //                        Toast.makeText(

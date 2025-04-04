@@ -3,6 +3,7 @@ package com.example.shoppinguserapp.data_layer.di
 import androidx.annotation.IntDef
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
 import dagger.Provides
@@ -26,6 +27,10 @@ object DataModule {
     @Provides
     fun provideStorage() : FirebaseStorage {
         return FirebaseStorage.getInstance()
+    }
+    @Provides
+    fun provideFirebaseMessaging(): FirebaseMessaging{
+        return FirebaseMessaging.getInstance()
     }
 
 }

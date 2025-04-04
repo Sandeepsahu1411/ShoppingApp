@@ -1,5 +1,6 @@
 package com.example.shoppinguserapp.ui_layer.screens.bottom_nav_screen
 
+import android.R.attr.data
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -52,10 +53,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
-import com.example.shoppinguserapp.ui_layer.screens.CartHeaderRow
+import com.example.shoppinguserapp.ui_layer.screens.CustomButton
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
 
 @Composable
@@ -69,7 +71,6 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
     LaunchedEffect(Unit) {
         viewModel.getProductsCart()
     }
-
     when {
         deleteProductCartState.value.isLoading -> {
             Box(
@@ -92,7 +93,7 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Row(modifier = Modifier.weight(0.2f)) {
+        Row(modifier = Modifier.weight(0.15f)) {
             CartTopRow(navController)
         }
 
@@ -100,7 +101,7 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 15.dp, vertical = 10.dp)
-                .weight(0.7f),
+                .weight(0.85f),
 
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -150,22 +151,19 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                     quantities[cartData.productId] ?: cartData.qty.toInt()
 
                                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    if (cartData.imageUrl.isNotEmpty()) {
-                                        var isLoading by remember { mutableStateOf(true) }
-                                        Box(
-                                            modifier = Modifier
-                                                .size(70.dp, 100.dp)
-                                                .clip(RoundedCornerShape(10.dp))
-                                        ) {
-                                            AsyncImage(model = ImageRequest.Builder(LocalContext.current)
-                                                .data(cartData.imageUrl).crossfade(true)
-                                                .build(),
-                                                contentDescription = null,
-                                                contentScale = ContentScale.Crop,
-                                                modifier = Modifier.fillMaxSize(),
-                                                onSuccess = { isLoading = false },
-                                                onError = { isLoading = false })
-                                            if (isLoading) {
+                                    SubcomposeAsyncImage(
+                                        model = if (cartData.imageUrl.isNotEmpty()) cartData.imageUrl else R.drawable.product_frock,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .size(70.dp, 100.dp)
+                                            .clip(RoundedCornerShape(10.dp)),
+                                        loading = {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(Color.LightGray)
+                                            ) {
                                                 CircularProgressIndicator(
                                                     modifier = Modifier
                                                         .size(40.dp)
@@ -173,15 +171,8 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                                     color = Color.Red
                                                 )
                                             }
-                                        }
-                                    } else {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.product_frock_3),
-                                            contentDescription = null,
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier.fillMaxSize()
-                                        )
-                                    }
+                                        })
+
                                     Column(
                                         modifier = Modifier.weight(0.25f),
                                         verticalArrangement = Arrangement.SpaceAround
@@ -192,7 +183,7 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                                     it.take(15)
                                                 }..." else it
                                             },
-                                            fontSize = 16.sp,
+                                            fontSize = 14.sp,
                                             lineHeight = 16.sp,
                                             color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
                                             fontWeight = FontWeight.Bold
@@ -200,14 +191,14 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
 
                                         Text(
                                             text = "Size : ${cartData.size}",
-                                            fontSize = 16.sp,
+                                            fontSize = 14.sp,
                                             color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
 
                                             )
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             Text(
                                                 text = "Color: ",
-                                                fontSize = 16.sp,
+                                                fontSize = 14.sp,
                                                 color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
 
                                                 )
@@ -218,7 +209,7 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                                             5.dp
                                                         )
                                                     )
-                                                    .size(20.dp)
+                                                    .size(15.dp)
                                                     .background(hexToColor(cartData.color))
                                             )
                                         }
@@ -231,8 +222,8 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                     ) {
                                         Row {
                                             Text(
-                                                text = "Rs: ${cartData.finalPrice}",
-                                                fontSize = 16.sp,
+                                                text = cartData.finalPrice,
+                                                fontSize = 14.sp,
                                                 color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
                                                 fontWeight = FontWeight.Bold,
                                                 modifier = Modifier.weight(0.35f)
@@ -240,7 +231,7 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                             )
                                             Text(
                                                 text = quantity.toString(),
-                                                fontSize = 16.sp,
+                                                fontSize = 14.sp,
                                                 color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
                                                 fontWeight = FontWeight.Bold,
                                                 modifier = Modifier
@@ -251,7 +242,7 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                             val total = cartData.finalPrice.toInt() * quantity
                                             Text(
                                                 text = total.toString(),
-                                                fontSize = 16.sp,
+                                                fontSize = 14.sp,
                                                 color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray,
                                                 fontWeight = FontWeight.Bold,
                                                 modifier = Modifier
@@ -295,10 +286,10 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                                 Icon(
                                                     Icons.Default.Remove,
                                                     contentDescription = null,
-                                                    modifier = Modifier
+                                                    tint = if (isSystemInDarkTheme()) Color.Black else Color.DarkGray,
                                                 )
                                             }
-                                            Spacer(Modifier.size(20.dp))
+                                            Spacer(Modifier.size(30.dp))
 
                                             Box(
                                                 modifier = Modifier
@@ -323,8 +314,9 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                                 Icon(
                                                     Icons.Rounded.Add,
                                                     contentDescription = null,
-                                                    modifier = Modifier
-                                                )
+                                                    tint = if (isSystemInDarkTheme()) Color.Black else Color.DarkGray,
+
+                                                    )
                                             }
 
                                         }
@@ -345,7 +337,7 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                 ) {
                                     Text(
                                         text = "Sub Total  ",
-                                        fontSize = 20.sp,
+                                        fontSize = 18.sp,
                                         color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
                                         fontWeight = FontWeight.Bold,
                                         fontFamily = FontFamily.Serif
@@ -357,7 +349,8 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
-                                Button(
+                                CustomButton(
+                                    text = "Checkout",
                                     onClick = {
                                         navController.navigate(
                                             Routes.ShippingScreen(
@@ -368,19 +361,9 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                                             )
                                         )
                                     },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(18.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFF8c8585),
-                                        contentColor = Color.White
-                                    )
-                                ) {
-                                    Text(
-                                        text = "CheckOut",
-                                        fontSize = 20.sp,
-                                        modifier = Modifier.padding(vertical = 8.dp)
-                                    )
-                                }
+                                    containerColor = Color(0xFF8c8585)
+                                )
+
                             }
                         }
 //                    }
@@ -399,13 +382,13 @@ fun hexToColor(hex: String): Color {
 
 @Composable
 fun CartTopRow(navController: NavController) {
-    Row {
-
+    Row (verticalAlignment = Alignment.Top){
         Column(
             modifier = Modifier
-                .fillMaxHeight()
-                .padding(start = 20.dp),
-            verticalArrangement = Arrangement.Center
+                .fillMaxSize()
+                .weight(0.6f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "Shopping Cart",
@@ -413,7 +396,7 @@ fun CartTopRow(navController: NavController) {
                 fontWeight = FontWeight.Bold,
                 color = if (isSystemInDarkTheme()) Color.White else Color.Black
             )
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(5.dp))
             Row(verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                 modifier = Modifier.clickable {
@@ -427,7 +410,7 @@ fun CartTopRow(navController: NavController) {
                 Text(
                     text = "Continue Shopping",
                     color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -436,10 +419,27 @@ fun CartTopRow(navController: NavController) {
             painter = painterResource(id = R.drawable.sign_top),
             contentDescription = null,
             modifier = Modifier
-                .fillMaxWidth()
-                .size(200.dp),
+                .weight(0.4f)
+                .fillMaxSize(),
             alignment = Alignment.TopEnd
         )
     }
 }
 
+@Composable
+fun CartHeaderRow() {
+    val headers = listOf("Items" to 0.5f, "Price" to 0.2f, "QTY" to 0.15f, "Total" to 0.15f)
+
+    Row {
+        headers.forEach { (title, weight) ->
+            Text(
+                text = title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
+
+                modifier = Modifier.weight(weight)
+            )
+        }
+    }
+}

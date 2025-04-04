@@ -39,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -46,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -54,16 +56,28 @@ import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.domen_layer.data_model.OrderModel
 import com.example.shoppinguserapp.domen_layer.data_model.ProductItem
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
+import com.example.shoppinguserapp.ui_layer.screens.CustomButton
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
 import java.util.UUID
 
 @Composable
-fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hiltViewModel()) {
+fun PaymentScreenUI(
+    navController: NavController,
+    productId: String,
+    productSize: String,
+    productColor: String,
+    productQty: String,
+    viewModel: AppViewModel = hiltViewModel()
+) {
 
     val getCartState = viewModel.getCartState.collectAsStateWithLifecycle()
     val getCartData = getCartState.value.success
-    val getShippingState = viewModel.getShippingState.collectAsStateWithLifecycle()
-    val getShippingData = getShippingState.value.success
+
+    val getShippingAddress = viewModel.getShippingState.collectAsStateWithLifecycle()
+    val getShippingData = getShippingAddress.value.success
+
+    val getProductByIdState = viewModel.getProductByIdState.collectAsStateWithLifecycle()
+    val productData = getProductByIdState.value.success
 
     var selectedMethod by remember { mutableStateOf("") }
     var selectedAddress by remember { mutableStateOf("Same") }
@@ -71,15 +85,25 @@ fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hilt
     val addOrderState = viewModel.addOrderState.collectAsStateWithLifecycle()
 
     val activity = LocalContext.current as MainActivity
+    val context = LocalContext.current
 
 
     LaunchedEffect(Unit) {
         viewModel.getProductsCart()
         viewModel.getShippingAddress()
     }
+    LaunchedEffect(productId) {
+        if (productId.isNotEmpty()) {
+            viewModel.getProductById(productId)
+        }
+    }
     when {
         addOrderState.value.isLoading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(1f), contentAlignment = Alignment.Center
+            ) {
                 CircularProgressIndicator()
             }
         }
@@ -90,15 +114,22 @@ fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hilt
         }
 
         addOrderState.value.success != null -> {
-            Toast.makeText(LocalContext.current, "Order Placed Successfully", Toast.LENGTH_SHORT)
-                .show()
+            if (productId.isEmpty()) {
+                viewModel.deleteProductCart()
+            }
+            navController.navigate(Routes.PaymentSuccessScreen) {
+                popUpTo(Routes.HomeScreen) {
+                    inclusive = false
+                }
+            }
+            addOrderState.value.success = null
         }
     }
 
     Column(
         modifier = Modifier
             .fillMaxHeight()
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = 16.dp)
     ) {
         Text(
             text = "Payments",
@@ -122,24 +153,34 @@ fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hilt
             Text(
                 text = "Return to Shipping",
                 color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
         }
+
         when {
-            getCartState.value.isLoading -> {
+            getCartState.value.isLoading || getProductByIdState.value.isLoading || getShippingAddress.value.isLoading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
 
-            getCartState.value.error != null -> {
-                Toast.makeText(LocalContext.current, getCartState.value.error, Toast.LENGTH_SHORT)
-                    .show()
+            getCartState.value.error != null || getProductByIdState.value.error.isNotEmpty() || getShippingAddress.value.error.isNotEmpty() -> {
+                Toast.makeText(
+                    LocalContext.current,
+                    "Error: ${getCartState.value.error ?: getProductByIdState.value.error}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
 
-            getCartState.value.success.isNotEmpty() -> {
-                val subTotal = getCartData.sumOf { it.finalPrice.toInt() * it.qty.toInt() }
+            getCartState.value.success.isNotEmpty() || getProductByIdState.value.success != null || getShippingAddress.value.success != null -> {
+                val subTotal =
+                    if (productId.isEmpty()) {
+                        getCartData.sumOf { it.finalPrice.toInt() * it.qty.toInt() }
+                    } else {
+                        (productData?.finalPrice?.toInt() ?: 0) * (productQty.toIntOrNull() ?: 1)
+
+                    }
 
                 LazyColumn(
                     modifier = Modifier
@@ -148,7 +189,13 @@ fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hilt
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     item {
-                        CartProductDetail(getCartData)
+                        if (productId.isNotEmpty()) {
+                            EachBuyProductDetail(
+                                productSize, productColor, productQty, productData
+                            )
+                        } else {
+                            CartProductDetail(getCartData)
+                        }
                     }
                     item {
                         PaymentMethod(
@@ -161,39 +208,72 @@ fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hilt
                             onMethodSelected = { selectedAddress = it })
                     }
                     item {
-
-                        Button(
+                        CustomButton(
+                            text = "Place Order",
                             onClick = {
-
+                                if (selectedMethod == "") {
+                                    Toast.makeText(
+                                        context,
+                                        "Select payment method",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@CustomButton
+                                }
                                 if (selectedMethod == "Online") {
                                     activity.startPayment(
                                         userName = "sandeep",
                                         userEmail = "Sandeep@gmail.com",
                                         userPhoneNo = "8773454678",
-                                        amount = if (subTotal > 3000) subTotal.toDouble() else subTotal.toDouble() + 100
+                                        amount = if (subTotal > 3000) subTotal.toDouble() else subTotal.toDouble() + 100,
+                                        productId = productId,
+                                        productData = productData,
+                                        productQty = productQty,
+                                        cartData = getCartData,
+                                        shippingData = getShippingData,
+                                        subTotal = subTotal,
+                                        productColor = productColor,
+                                        productSize = productSize
                                     )
                                 } else {
-                                    val orderProducts = getCartData.map { cartItem ->
-                                        ProductItem(
-                                            productId = cartItem.productId,
-                                            productName = cartItem.name,
-                                            productDes = cartItem.description,
-                                            productQty = cartItem.qty.toString(),
-                                            productPrice = cartItem.price,
-                                            productFinalPrice = cartItem.finalPrice,
-                                            productCategory = cartItem.category,
-                                            productImageUrl = cartItem.imageUrl,
-                                            color = cartItem.color,
-                                            size = cartItem.size
+                                    val orderProducts = if (productId.isNotEmpty()) {
+                                        // ✅ Single Buy Order
+                                        listOf(
+                                            ProductItem(
+                                                productId = productData?.productId ?: productId,
+                                                productName = productData?.name ?: "",
+                                                productDes = productData?.description ?: "",
+                                                productQty = productQty,
+                                                productPrice = productData?.price ?: "",
+                                                productFinalPrice = productData?.finalPrice ?: "",
+                                                productCategory = productData?.category ?: "",
+                                                productImageUrl = productData?.image ?: "",
+                                                color = productColor,
+                                                size = productSize
+                                            )
                                         )
+                                    } else {
+                                        // ✅ Cart Buy Order
+                                        getCartData.map { cartItem ->
+                                            ProductItem(
+                                                productId = cartItem.productId,
+                                                productName = cartItem.name,
+                                                productDes = cartItem.description,
+                                                productQty = cartItem.qty.toString(),
+                                                productPrice = cartItem.price,
+                                                productFinalPrice = cartItem.finalPrice,
+                                                productCategory = cartItem.category,
+                                                productImageUrl = cartItem.imageUrl,
+                                                color = cartItem.color,
+                                                size = cartItem.size
+                                            )
+                                        }
                                     }
-
-                                    viewModel.deleteProductCart()
                                     viewModel.addOrder(
                                         orderModel = OrderModel(
-                                            orderId =  UUID.randomUUID().toString().take(12).uppercase(),
+                                            orderId = UUID.randomUUID().toString().take(12)
+                                                .uppercase(),
                                             products = orderProducts,
-                                            totalPrice = if (subTotal > 3000)subTotal.toString() else (subTotal + 100).toString(),
+                                            totalPrice = if (subTotal > 3000) subTotal.toString() else (subTotal + 100).toString(),
                                             transactionMethod = selectedMethod,
                                             transactionId = "123456789",
                                             userAddress = getShippingData?.address.toString(),
@@ -206,27 +286,12 @@ fun PaymentScreenUI(navController: NavController, viewModel: AppViewModel = hilt
                                             postalCode = getShippingData?.pinCode.toString(),
                                         )
                                     )
-                                    navController.navigate(Routes.PaymentSuccessScreen) {
-                                        popUpTo(Routes.HomeScreen) {
-                                            inclusive = false
-                                        }
-                                    }
+
                                 }
                             },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 15.dp),
-                            shape = RoundedCornerShape(15.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF8c8585), contentColor = Color.White
-                            )
-                        ) {
-                            Text(
-                                text = "Pay Now",
-                                fontSize = 20.sp,
-                                modifier = Modifier.padding(vertical = 5.dp)
-                            )
-                        }
+                            containerColor = Color(0xFF8c8585)
+                        )
+
                     }
                 }
             }
@@ -242,8 +307,8 @@ fun PaymentMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = if (isSystemInDarkTheme()) Color.White else Color(0xFF5c5757),
-            modifier = Modifier.padding(vertical = 5.dp)
-        )
+
+            )
         Text(
             text = "All transactions are secure and encrypted.",
             fontSize = 14.sp,
@@ -251,107 +316,112 @@ fun PaymentMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
 
             modifier = Modifier.padding(vertical = 10.dp)
         )
-        Box(
+
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .clip(RoundedCornerShape(18.dp))
                 .border(1.dp, Color(0xFFF68B8B), shape = RoundedCornerShape(18.dp))
+                .background(
+                    if (isSystemInDarkTheme()) Color.DarkGray else Color.White,
+                ),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+
         ) {
-            Column(
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { onMethodSelected("Online") }) {
+                RadioButton(
+                    selected = selectedMethod == "Online",
+                    onClick = { onMethodSelected("Online") },
+                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFF68B8B))
+                )
+                Text(
+                    text = "Sampath Bank IPG",
+                    fontSize = 14.sp,
+                    modifier = Modifier.weight(0.7f)
+
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Image(
+                        painter = painterResource(id = R.drawable.visa),
+                        contentDescription = null,
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.mastercard),
+                        contentDescription = null,
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.unionpay),
+                        contentDescription = null,
+                        modifier = Modifier.size(30.dp),
+                    )
+
+                }
+            }
+
+            Card(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .padding(5.dp)
-                    .background(
-                        if (isSystemInDarkTheme()) Color.DarkGray else Color.White,
-                    ),
-                verticalArrangement = Arrangement.spacedBy(5.dp)
+                    .clickable{
+                        onMethodSelected("Online")
+                    }, colors = CardDefaults.cardColors(
+                    containerColor =
+                        if (isSystemInDarkTheme()) Color(0xE68D7171) else Color(0xFFF5F2F1)
+
+                )
+
 
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { onMethodSelected("Online") }) {
-                    RadioButton(
-                        selected = selectedMethod == "Online",
-                        onClick = { onMethodSelected("Online") },
-                        colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFF68B8B))
-                    )
-                    Text(
-                        text = "Sampath Bank IPG",
-                        fontSize = 14.sp,
-                        modifier = Modifier.weight(0.7f)
-
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Image(
-                            painter = painterResource(id = R.drawable.visa),
-                            contentDescription = null,
-                            modifier = Modifier.size(30.dp)
-                        )
-                        Image(
-                            painter = painterResource(id = R.drawable.mastercard),
-                            contentDescription = null,
-                            modifier = Modifier.size(30.dp)
-                        )
-                        Image(
-                            painter = painterResource(id = R.drawable.unionpay),
-                            contentDescription = null,
-                            modifier = Modifier.size(30.dp),
-                        )
-
-                    }
-                }
-
-                Card(
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .padding(5.dp), colors = CardDefaults.cardColors(
-                        containerColor =
-                            if (isSystemInDarkTheme()) Color(0x7EF5F2F1) else Color(0xFFF5F2F1),
+                        .padding(15.dp, 5.dp)
 
-
-                        )
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .padding(15.dp, 5.dp)
-
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.card_payment),
-                            contentDescription = null,
-                            modifier = Modifier.size(60.dp)
-                        )
-                        Text(
-                            text = "After clicking “Pay now”, you will be redirected to Sampath Bank IPG to complete your purchase securely.",
-                            fontSize = 12.sp,
-                            color = if (isSystemInDarkTheme()) Color.White else Color(0xFF5c5757),
-
-                            textAlign = TextAlign.Justify,
-                            modifier = Modifier.padding(vertical = 10.dp)
-                        )
-                    }
-                }
-
-                HorizontalDivider(thickness = 2.dp)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { onMethodSelected("COD") }) {
-                    RadioButton(
-                        selected = selectedMethod == "COD",
-                        onClick = { onMethodSelected("COD") },
-                        colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFF68B8B))
+                    Icon(
+                        painter = painterResource(id = R.drawable.card_payment),
+                        contentDescription = null,
+                        modifier = Modifier.size(60.dp),
+                        tint = if (isSystemInDarkTheme()) Color.White else Color(0xFF5c5757)
                     )
                     Text(
-                        text = "Cash on delivery (COD)",
-                        fontSize = 14.sp,
-                        modifier = Modifier.weight(0.85f)
+                        text = "After clicking “Pay now”, you will be redirected to Sampath Bank IPG to complete your purchase securely.",
+                        fontSize = 12.sp,
+                        color = if (isSystemInDarkTheme()) Color.White else Color(0xFF5c5757),
+                        lineHeight = 20.sp,
+                        textAlign = TextAlign.Justify,
+                        modifier = Modifier.padding(vertical = 10.dp)
                     )
-
-
                 }
+            }
+
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = if (isSystemInDarkTheme()) Color.White else Color(0xFFF68B8B)
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { onMethodSelected("COD") }) {
+                RadioButton(
+                    selected = selectedMethod == "COD",
+                    onClick = { onMethodSelected("COD") },
+                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFF68B8B))
+                )
+                Text(
+                    text = "Cash on delivery (COD)",
+                    fontSize = 14.sp,
+                    modifier = Modifier.weight(0.85f)
+                )
 
 
             }
+
+
         }
+
     }
 }
 
@@ -366,69 +436,70 @@ fun BillingAddress(selectedMethod: String, onMethodSelected: (String) -> Unit) {
 
             modifier = Modifier.padding(vertical = 10.dp)
         )
-        Box(
+
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, Color(0xFFF68B8B), shape = RoundedCornerShape(18.dp))
+                .border(1.dp, Color(0xFFF68B8B), shape = RoundedCornerShape(18.dp)),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(15.dp),
-                verticalArrangement = Arrangement.spacedBy(0.dp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { onMethodSelected("Same") }) {
+                RadioButton(
+                    selected = selectedMethod == "Same",
+                    onClick = { onMethodSelected("Same") },
+                    modifier = Modifier.weight(0.1f),
 
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { onMethodSelected("Same") }) {
-                    RadioButton(
-                        selected = selectedMethod == "Same",
-                        onClick = { onMethodSelected("Same") },
-                        colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFF68B8B))
-                    )
-                    Text(
-                        text = "Same as shipping address",
-                        fontSize = 14.sp,
-                        modifier = Modifier.weight(0.8f)
+                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFF68B8B))
+                )
+                Text(
+                    text = "Same as shipping address",
+                    fontSize = 14.sp,
+                    modifier = Modifier.weight(0.7f)
 
-                    )
-                    Text(
-                        text = "Change",
-                        color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
-                        fontSize = 16.sp,
-                        modifier = Modifier.weight(0.2f)
+                )
+                Text(
+                    text = "Change",
+                    color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .weight(0.2f)
+                        .clickable {}
 
-                    )
-                }
-                HorizontalDivider(thickness = 2.dp)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { onMethodSelected("Different") }) {
-                    RadioButton(
-                        selected = selectedMethod == "Different",
-                        onClick = { onMethodSelected("Different") },
-                        colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFF68B8B))
-                    )
-                    Text(
-                        text = "Use a different billing address",
-                        fontSize = 14.sp,
-                        modifier = Modifier.weight(0.8f)
-                    )
-
-                    Text(
-                        text = "Change",
-                        color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
-                        fontSize = 16.sp,
-                        modifier = Modifier
-                            .weight(0.2f)
-                            .clickable {}
-
-                    )
-                }
-
-
+                )
             }
+            HorizontalDivider(thickness = 2.dp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { onMethodSelected("Different") }) {
+                RadioButton(
+                    selected = selectedMethod == "Different",
+                    onClick = { onMethodSelected("Different") },
+                    modifier = Modifier.weight(0.1f),
+                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFF68B8B))
+                )
+                Text(
+                    text = "Use a different billing address",
+                    fontSize = 14.sp,
+                    modifier = Modifier.weight(0.7f)
+                )
+
+                Text(
+                    text = "Change",
+                    color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .weight(0.2f)
+                        .clickable {}
+
+                )
+            }
+
+
         }
+
     }
 
 

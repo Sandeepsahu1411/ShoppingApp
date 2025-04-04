@@ -60,6 +60,7 @@ import coil.compose.SubcomposeAsyncImage
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.domen_layer.data_model.OrderModel
 import com.example.shoppinguserapp.domen_layer.data_model.ProductItem
+import com.example.shoppinguserapp.ui_layer.navigation.Routes
 import com.example.shoppinguserapp.ui_layer.screens.bottom_nav_screen.hexToColor
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
 import java.text.SimpleDateFormat
@@ -76,13 +77,14 @@ fun OrderScreenUI(navController: NavController, viewModel: AppViewModel = hiltVi
         viewModel.getOrder()
     }
     Column(modifier = Modifier.fillMaxSize()) {
-        Row(modifier = Modifier.weight(0.2f)) {
+        Row(modifier = Modifier.weight(0.15f)) {
             Row {
                 Column(
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .padding(start = 20.dp),
-                    verticalArrangement = Arrangement.Center
+                        .fillMaxSize()
+                        .weight(0.6f),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = "My Orders",
@@ -95,7 +97,7 @@ fun OrderScreenUI(navController: NavController, viewModel: AppViewModel = hiltVi
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(5.dp),
                         modifier = Modifier.clickable {
-                            navController.navigateUp()
+                            navController.navigate(Routes.HomeScreen)
                         }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBackIosNew,
@@ -105,7 +107,7 @@ fun OrderScreenUI(navController: NavController, viewModel: AppViewModel = hiltVi
                         Text(
                             text = "Continue Shopping",
                             color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -114,8 +116,8 @@ fun OrderScreenUI(navController: NavController, viewModel: AppViewModel = hiltVi
                     painter = painterResource(id = R.drawable.sign_top),
                     contentDescription = null,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .size(200.dp),
+                        .weight(0.4f)
+                        .fillMaxSize(),
                     alignment = Alignment.TopEnd
                 )
             }
@@ -124,7 +126,7 @@ fun OrderScreenUI(navController: NavController, viewModel: AppViewModel = hiltVi
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 15.dp, vertical = 10.dp)
-                .weight(0.8f), horizontalAlignment = Alignment.CenterHorizontally
+                .weight(0.85f), horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             when {
                 getOrderState.value.isLoading -> {
@@ -183,7 +185,7 @@ fun OrdersCard(order: OrderModel) {
             ),
         elevation = CardDefaults.cardElevation(4.dp),
         shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(if (isSystemInDarkTheme()) Color.DarkGray else Color.White)
     ) {
         Column(
             modifier = Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -214,7 +216,7 @@ fun OrdersCard(order: OrderModel) {
             order.products.forEach { product ->
                 ProductCard(product = product)
             }
-            HorizontalDivider(thickness = 2.dp)
+            HorizontalDivider(thickness = 1.dp,color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray)
             Column {
                 Row {
                     Text(text = "Total Price", fontSize = 16.sp, modifier = Modifier.weight(1f))
@@ -235,7 +237,7 @@ fun OrdersCard(order: OrderModel) {
                     )
                 }
             }
-            HorizontalDivider(thickness = 2.dp)
+            HorizontalDivider(thickness = 2.dp,color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray)
             Row {
                 Text(
                     text = "Sub Total",
@@ -252,7 +254,7 @@ fun OrdersCard(order: OrderModel) {
                 )
             }
             if (expanded) {
-                HorizontalDivider(thickness = 2.dp)
+                HorizontalDivider(thickness = 2.dp,color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray)
                 Column {
                     Text(
                         text = "Receiver Details",
@@ -445,7 +447,7 @@ fun OrderProgressTracker(currentStatus: String) {
                     textAlign = TextAlign.Center,
                     fontWeight = if (index <= currentIndex) FontWeight.Bold else FontWeight.Normal,
                     color = if (index <= currentIndex) Color(0xFFF68B8B) else Color.LightGray,
-                    modifier = Modifier.width(60.dp)
+                    modifier = Modifier.width(70.dp)
                 )
             }
 

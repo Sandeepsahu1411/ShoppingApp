@@ -9,6 +9,7 @@ import com.example.shoppinguserapp.common.PRODUCTS
 import com.example.shoppinguserapp.common.ResultState
 import com.example.shoppinguserapp.common.SHIPPING
 import com.example.shoppinguserapp.common.USERS
+import com.example.shoppinguserapp.common.USER_TOKEN
 import com.example.shoppinguserapp.common.WISHLIST
 import com.example.shoppinguserapp.common.WISHLIST_BY_USER
 import com.example.shoppinguserapp.domen_layer.data_model.CartModel
@@ -20,6 +21,7 @@ import com.example.shoppinguserapp.domen_layer.data_model.UserData
 import com.example.shoppinguserapp.domen_layer.repo.Repo
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +31,8 @@ import javax.inject.Inject
 class Repoimple @Inject constructor(
     private val firebaseFireStore: FirebaseFirestore,
     private val firebaseAuth: FirebaseAuth,
-    private val firebaseStorage: FirebaseStorage
+    private val firebaseStorage: FirebaseStorage,
+    private val firebaseMessaging: FirebaseMessaging
 ) : Repo {
     override fun registerUser(userData: UserData): Flow<ResultState<String>> = callbackFlow {
         trySend(ResultState.Loading)
@@ -41,6 +44,8 @@ class Repoimple @Inject constructor(
                     }.addOnFailureListener {
                         trySend(ResultState.Error(it))
                     }
+                updateFcmToken(firebaseAuth.currentUser?.uid.toString())
+
             }.addOnFailureListener {
                 trySend(ResultState.Error(it))
             }
@@ -60,6 +65,7 @@ class Repoimple @Inject constructor(
         }.addOnFailureListener {
             trySend(ResultState.Error(it))
         }
+        updateFcmToken(firebaseAuth.currentUser?.uid.toString())
         awaitClose {
             close()
         }
@@ -486,6 +492,17 @@ class Repoimple @Inject constructor(
             }
 
         awaitClose { close() }
+    }
+
+    fun updateFcmToken(userId: String) {
+        firebaseMessaging.token.addOnCompleteListener {
+            if (it.isSuccessful) {
+                val token = it.result
+                firebaseFireStore.collection(USER_TOKEN).document(userId).set(mapOf("token" to token))
+            }
+        }
+
+
     }
 
 

@@ -1,5 +1,6 @@
 package com.example.shoppinguserapp.ui_layer.screens.bottom_nav_screen
 
+import android.R.attr.text
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -61,6 +62,8 @@ import coil.compose.SubcomposeAsyncImage
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.domen_layer.data_model.UserData
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
+import com.example.shoppinguserapp.ui_layer.screens.CustomButton
+import com.example.shoppinguserapp.ui_layer.screens.CustomOutlineButton
 import com.example.shoppinguserapp.ui_layer.screens.CustomOutlinedTextField
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -146,11 +149,11 @@ fun ProfileScreenUI(
         userState.value.success != null -> {
             Box(modifier = Modifier.fillMaxSize()) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    Row(modifier = Modifier.weight(0.25f)) {
+                    Row(modifier = Modifier.weight(0.2f)) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .weight(0.5f),
+                                .weight(0.6f),
                             contentAlignment = Alignment.Center
 
                         ) {
@@ -159,7 +162,7 @@ fun ProfileScreenUI(
                                 contentDescription = null,
                                 modifier = Modifier
                                     .border(4.dp, Color(0xFFF68B8B), CircleShape)
-                                    .size(130.dp)
+                                    .size(120.dp)
                                     .clip(CircleShape),
                                 contentScale = ContentScale.Crop,
                                 loading = {
@@ -175,7 +178,7 @@ fun ProfileScreenUI(
                             if (updateImageState.value.isLoading) {
                                 Box(
                                     modifier = Modifier
-                                        .size(130.dp)
+                                        .size(120.dp)
                                         .clip(CircleShape)
                                         .background(Color.Black.copy(alpha = 0.5f)),
                                     contentAlignment = Alignment.Center
@@ -188,7 +191,7 @@ fun ProfileScreenUI(
 
                             if (isEditable) {
                                 Box(
-                                    modifier = Modifier.size(140.dp),
+                                    modifier = Modifier.size(130.dp),
                                     contentAlignment = Alignment.BottomEnd
                                 ) {
                                     IconButton(onClick = {
@@ -215,8 +218,8 @@ fun ProfileScreenUI(
                             painter = painterResource(id = R.drawable.sign_top),
                             contentDescription = null,
                             modifier = Modifier
-                                .weight(0.5f)
-                                .size(200.dp),
+                                .weight(0.4f)
+                                .fillMaxSize(),
                             alignment = Alignment.TopEnd
                         )
 
@@ -282,70 +285,35 @@ fun ProfileScreenUI(
                             isEditable = isEditable,
                         )
                         if (!isEditable) {
-                            Button(
+                            CustomButton(
+                                text = "Log Out",
                                 onClick = {
                                     showDialog = true
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(18.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFF68B8B), contentColor = Color.White
-                                )
-                            ) {
-                                Text(
-                                    text = "Log Out",
-                                    fontSize = 20.sp,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
-
-                            OutlinedIconButton(
+                                }
+                            )
+                            CustomOutlineButton(
+                                text="Edit Profile",
                                 onClick = {
                                     isEditable = !isEditable
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(55.dp)
-                                    .border(
-                                        BorderStroke(2.dp, Color(0xFFF68B8B)),
-                                        shape = RoundedCornerShape(18.dp)
-                                    ),
-                                shape = RoundedCornerShape(18.dp),
-
-                                ) {
-                                Text(
-                                    text = "Edit Profile",
-                                    fontSize = 16.sp,
-                                    color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                            Button(
+                                }
+                            )
+                            CustomButton(
+                                text = "My Orders",
                                 onClick = {
                                     navController.navigate(Routes.OrderScreen)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(18.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFF68B8B), contentColor = Color.White
-                                )
-                            ) {
-                                Text(
-                                    text = "My Orders",
-                                    fontSize = 20.sp,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
+                                }
+                            )
+
                         } else {
-                            Button(
+                            CustomButton(
+                                text = "Update Profile",
                                 onClick = {
                                     val emailPattern =
                                         Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,3}\$")
                                     if (!emailPattern.matches(email)) {
                                         Toast.makeText(context, "Invalid email", Toast.LENGTH_SHORT)
                                             .show()
-                                        return@Button
+                                        return@CustomButton
                                     }
                                     if (phoneNumber.length != 10 || !phoneNumber.all { it.isDigit() }) {
                                         Toast.makeText(
@@ -353,7 +321,7 @@ fun ProfileScreenUI(
                                             "Invalid phone number",
                                             Toast.LENGTH_SHORT
                                         ).show()
-                                        return@Button
+                                        return@CustomButton
                                     }
                                     viewModel.updateUserDetails(
                                         firebaseAuth.currentUser?.uid.toString(), UserData(
@@ -368,19 +336,8 @@ fun ProfileScreenUI(
                                         )
                                     )
                                     isEditable = !isEditable
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(18.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFF68B8B), contentColor = Color.White
-                                )
-                            ) {
-                                Text(
-                                    text = "Update Profile",
-                                    fontSize = 20.sp,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
+                                }
+                            )
                         }
                     }
                     Image(
@@ -389,7 +346,7 @@ fun ProfileScreenUI(
                         modifier = Modifier
                             .fillMaxHeight()
                             .size(150.dp)
-                            .weight(0.15f),
+                            .weight(0.1f),
                         alignment = Alignment.BottomStart
                     )
                 }

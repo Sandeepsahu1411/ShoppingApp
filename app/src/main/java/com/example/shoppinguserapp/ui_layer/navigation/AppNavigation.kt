@@ -11,6 +11,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,8 +38,8 @@ import com.example.shoppinguserapp.ui_layer.screens.bottom_nav_screen.WishListSc
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun AppNavigation(firebaseAuth: FirebaseAuth) {
-    val navController = rememberNavController()
+fun AppNavigation(firebaseAuth: FirebaseAuth,navController: NavHostController) {
+//    val navController = rememberNavController()
 
     var selectedItemIndex by remember { mutableIntStateOf(0) }
     val currentDestination by navController.currentBackStackEntryAsState()
@@ -160,7 +162,17 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
                     }
 
                     composable<Routes.PaymentScreen> {
-                        PaymentScreenUI(navController)
+                        val productId = it.arguments?.getString("productId")
+                        val productSize = it.arguments?.getString("productSize")
+                        val productColor = it.arguments?.getString("productColor")
+                        val productQty = it.arguments?.getString("productQty")
+                        PaymentScreenUI(
+                            navController,
+                            productId.toString(),
+                            productSize.toString(),
+                            productColor.toString(),
+                            productQty.toString()
+                        )
                     }
                     composable<Routes.PaymentSuccessScreen> {
 
@@ -169,7 +181,7 @@ fun AppNavigation(firebaseAuth: FirebaseAuth) {
                     composable<Routes.NotificationScreen> {
                         NotificationScreenUI(navController)
                     }
-                    composable<Routes.OrderScreen>{
+                    composable<Routes.OrderScreen> {
                         OrderScreenUI(navController)
                     }
 

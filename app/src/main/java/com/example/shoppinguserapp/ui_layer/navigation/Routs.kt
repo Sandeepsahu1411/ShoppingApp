@@ -39,7 +39,14 @@ sealed class Routes {
     ) : Routes()
 
     @Serializable
-    object PaymentScreen : Routes()
+    data class PaymentScreen(
+        val productId : String,
+        val productSize : String,
+        val productColor : String,
+        val productQty : String
+    ) : Routes()
+
+
 
     @Serializable
     object SeeMoreProductsScreen : Routes()

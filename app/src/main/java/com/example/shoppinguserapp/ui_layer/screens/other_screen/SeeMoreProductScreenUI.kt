@@ -69,215 +69,221 @@ fun SeeMoreProductScreenUI(
     LaunchedEffect(Unit) {
         viewModel.getAllProducts()
     }
-    when {
-        productState.value.isLoading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(modifier = Modifier.weight(0.15f)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(0.6f)
+                    .padding(start = 20.dp),
+                verticalArrangement = Arrangement.Center
+
+            ) {
+                Text(
+                    text = "See More",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+
+                    )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    modifier = Modifier
+
+                        .clickable {
+                            navController.navigate(Routes.HomeScreen)
+                        }) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBackIosNew,
+                        contentDescription = null,
+                        Modifier.size(15.dp)
+                    )
+                    Text(
+                        text = "Continue Shopping",
+                        color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
             }
-
+            Image(
+                painter = painterResource(id = R.drawable.sign_top),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.4f)
+                    .size(200.dp),
+                alignment = Alignment.TopEnd
+            )
         }
 
-        productState.value.error.isNotEmpty() -> {
-            Toast.makeText(context, productState.value.error, Toast.LENGTH_SHORT).show()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .weight(0.85f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Items",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(0.5f)
+                )
+                Text(
+                    text = "Price",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
 
-        }
+                    textAlign = TextAlign.Center,
 
-        productState.value.success.isNotEmpty() -> {
-
-            Box(modifier = Modifier.fillMaxSize()) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    Row(modifier = Modifier.weight(0.2f)) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .weight(0.5f)
-                                .padding(start = 20.dp),
-                            verticalArrangement = Arrangement.Center
-
-                        ) {
-                            Text(
-                                text = "See More",
-                                fontSize = 28.sp,
-                                fontWeight = FontWeight.Bold,
-
-                                )
-                            Row(verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                                modifier = Modifier
-                                    .padding(vertical = 10.dp)
-                                    .clickable {
-                                        navController.navigate(Routes.HomeScreen)
-                                    }) {
-                                Icon(
-                                    imageVector = Icons.Default.ArrowBackIosNew,
-                                    contentDescription = null,
-                                    Modifier.size(15.dp)
-                                )
-                                Text(
-                                    text = "Continue Shopping",
-                                    color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-
-                        }
-                        Image(
-                            painter = painterResource(id = R.drawable.sign_top),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(0.5f)
-                                .size(200.dp),
-                            alignment = Alignment.TopEnd
-                        )
+                    modifier = Modifier.weight(0.5f)
+                )
+            }
+            SearchBox(
+                value = searchQuery,
+                onValueChange = { searchQuery = it }
+            )
+            when {
+                productState.value.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 10.dp)
-                            .weight(0.8f),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
+                }
+
+                productState.value.error.isNotEmpty() -> {
+                    Toast.makeText(context, productState.value.error, Toast.LENGTH_SHORT).show()
+
+                }
+
+
+                productState.value.success.isNotEmpty() -> {
+
+
+                    if (searchQuery.isNotEmpty() && filteredProducts.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Items",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.weight(0.5f)
-                            )
-                            Text(
-                                text = "Price",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
-
-                                textAlign = TextAlign.Center,
-
-                                modifier = Modifier.weight(0.5f)
+                                text = "No Products Found",
+                                fontSize = 18.sp,
+                                color = Color.Red
                             )
                         }
-                        SearchBox(
-                            value = searchQuery,
-                            onValueChange = { searchQuery = it }
-                        )
-                        if (searchQuery.isNotEmpty() && filteredProducts.isEmpty()) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "No Products Found",
-                                    fontSize = 18.sp,
-                                    color = Color.Red
-                                )
-                            }
-                        } else {
-                            LazyColumn(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                                items(items = filteredProducts) { product ->
+                    } else {
+                        LazyColumn(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                            items(items = filteredProducts) { product ->
 
 
-                                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                        modifier = Modifier.clickable {
-                                            navController.navigate(
-                                                Routes.EachProductDetailScreen(
-                                                    productId = product!!.productId
-                                                )
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    modifier = Modifier.clickable {
+                                        navController.navigate(
+                                            Routes.EachProductDetailScreen(
+                                                productId = product!!.productId
                                             )
-                                        })
-                                    {
-                                        if (product?.image?.isNotEmpty()!!) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(100.dp, 140.dp)
-                                                    .clip(RoundedCornerShape(10.dp))
+                                        )
+                                    })
+                                {
+                                    if (product?.image?.isNotEmpty()!!) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(90.dp, 130.dp)
+                                                .clip(RoundedCornerShape(10.dp))
 
-                                            ) {
-                                                SubcomposeAsyncImage(
-                                                    model = product.image,
-                                                    contentDescription = null,
-                                                    contentScale = ContentScale.Crop,
-                                                    modifier = Modifier
-                                                        .fillMaxSize(),
-                                                    loading = {
-                                                        Box(
-                                                            modifier = Modifier
-                                                                .fillMaxSize()
-                                                                .background(Color.LightGray)
-                                                        ) {
-                                                            CircularProgressIndicator(
-                                                                modifier = Modifier
-                                                                    .size(40.dp)
-                                                                    .align(Alignment.Center),
-                                                                color = Color.Red
-                                                            )
-                                                        }
-                                                    }
-                                                )
-                                            }
-
-                                        } else {
-                                            Image(
-                                                painter = painterResource(id = R.drawable.product_frock_3),
+                                        ) {
+                                            SubcomposeAsyncImage(
+                                                model = product.image,
                                                 contentDescription = null,
                                                 contentScale = ContentScale.Crop,
                                                 modifier = Modifier
                                                     .fillMaxSize(),
+                                                loading = {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxSize()
+                                                            .background(Color.LightGray)
+                                                    ) {
+                                                        CircularProgressIndicator(
+                                                            modifier = Modifier
+                                                                .size(40.dp)
+                                                                .align(Alignment.Center),
+                                                            color = Color.Red
+                                                        )
+                                                    }
+                                                }
                                             )
                                         }
-                                        Column(
-                                            modifier = Modifier.weight(0.7f),
-                                            verticalArrangement = Arrangement.SpaceAround
-                                        ) {
-                                            Text(
-                                                text = product.name,
-                                                fontSize = 18.sp,
-                                                color = Color(0xFFF68B8B),
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            Text(
-                                                text = product.category,
-                                                fontSize = 16.sp,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            Text(
-                                                text = "Size : UK10",
-                                                fontSize = 16.sp,
 
-                                                )
-
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                Text(
-                                                    text = "Color : ",
-                                                    fontSize = 16.sp,
-                                                    color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray
-                                                )
-
-
-                                                Box(
-                                                    modifier = Modifier
-                                                        .clip(shape = RoundedCornerShape(5.dp))
-                                                        .size(20.dp)
-                                                        .background(Color.Green)
-                                                )
-                                            }
-                                        }
-
-                                        Text(
-                                            text = "Rs: ${product?.finalPrice}",
-                                            fontSize = 16.sp,
-                                            color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.weight(0.3f)
-
+                                    } else {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.product_frock_3),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .fillMaxSize(),
                                         )
                                     }
+                                    Column(
+                                        modifier = Modifier.weight(0.7f),
+                                        verticalArrangement = Arrangement.SpaceAround
+                                    ) {
+                                        Text(
+                                            text = product.name,
+                                            fontSize = 16.sp,
+                                            color = Color(0xFFF68B8B),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = product.category,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "Size : UK10",
+                                            fontSize = 14.sp,
+
+                                            )
+
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                text = "Color : ",
+                                                fontSize = 14.sp,
+                                                color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray
+                                            )
+
+
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(shape = RoundedCornerShape(5.dp))
+                                                    .size(20.dp)
+                                                    .background(Color.Green)
+                                            )
+                                        }
+                                    }
+
+                                    Text(
+                                        text = "Rs: ${product?.finalPrice}",
+                                        fontSize = 14.sp,
+                                        color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.DarkGray,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.weight(0.3f)
+
+                                    )
                                 }
                             }
                         }
@@ -286,4 +292,6 @@ fun SeeMoreProductScreenUI(
             }
         }
     }
+
+
 }
