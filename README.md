@@ -1,89 +1,118 @@
-# Shopping App
+# 🛒 Shopping App
 
-A fully functional **shopping app** built with **Jetpack Compose**, **Kotlin** and **Firebase**. The app provides a smooth shopping experience with features like product browsing, cart management, and secure checkout with razorpay payment gateway.
-
-## Features
-✔️ Splash Screen
-✔️ Firebase Authentication (Login & Signup)
-✔️ Home Screen With Categories, Banner & Flash Products
-✔️ Product Details with Add to Cart & Buy Now
-✔️ Shopping Cart & Checkout
-✔️ Payment Getway & Order Success
-✔️ Profile Management
-✔️ Wishlist & Notifications
+A fully functional **Shopping App** built using **Jetpack Compose**, **Kotlin**, and **Firebase**. It provides a seamless shopping experience with features like product browsing, cart management, order tracking, profile updates, and secure checkout with **Razorpay** and **Cash on Delivery**.
 
 ---
+## ✨ Features
 
-## 1️⃣ Splash Screen, Login & Signup
+- 🚀 Splash Screen  
+- 🔐 Firebase Authentication (Email/Password, Google, Facebook)  
+- 🏠 Home Screen with Categories, Banners & Flash Products  
+- 📦 Product Details with Cart & Buy Options  
+- 🛒 Shopping Cart & Checkout  
+- 💳 Razorpay Payment Integration + COD Option  
+- ✅ Order Confirmation & Success Flow  
+- 📬 Shipping Address Management  
+- 🧾 Order List & Tracking  
+- ❤️ Wishlist & 🔔 Notifications  
+- 👤 Profile Management & Logout  
+## 📲 Screens & Functionalities
+
+### 1️⃣ Splash Screen, Login & Signup
 <img src="assets/splash_screen.png" width="200"> <img src="assets/login_screen.png" width="200"> <img src="assets/sign_up_screen.png" width="200">
 
-- Displays the app logo and initializes data.
-- **Firebase Authentication** used for user login & registration.
-- Secure sign-in with email & password.
-- Login with facebook & google
+- Splash screen initializes user state and navigates accordingly.
+- **Firebase Authentication** for Email/Password, Google, and Facebook login.
+- Validations and error messages handled smoothly.
 
 ---
 
-## 2️⃣ Home Screen, Categories & Flash Product
+### 2️⃣ Home Screen, Banners, Categories, Flash Products
 <img src="assets/home_screen.png" width="200"> <img src="assets/home_screen_2.png" width="200"> <img src="assets/each_category .png" width="200"> <img src="assets/see_more_category_2.png" width="200">
 
-- Browse products by categories.
-- Search bar for quick navigation.
-- Notifications & profile access.
-- When Click on Category Open New Screen with filterd products by Category
+- Explore products by categories.
+- Flash sale section with limited-time offers.
+- Top banners fetched from Firebase Storage.
+- Tap on any category → Opens new screen with filtered product list.
 
 ---
-## 3️⃣ SeeMore Product & Categories & Search Filter
+
+### 3️⃣ See More Products, Category Filter, Search Filter
 <img src="assets/see_more_category.png" width="200"> <img src="assets/see_more_product_screen.png" width="200"> <img src="assets/see_more_screen_search.png" width="200">
 
-- On Click See All categories .
-- On Click See All Flash Product.
-- Filter with Searching Product
+- See All Categories and Flash Products in dedicated screens.
+- Filter products using category or keyword search.
+- Search bar supports dynamic filtering and suggestions.
 
 ---
 
-
-## 4️⃣ Product Details
+### 4️⃣ Product Details Screen 
 <img src="assets/product_details_screen.png" width="200"> <img src="assets/product_detail_screen_3.png" width="200"> <img src="assets/product_detail_screen_2.png" width="200">
 
-- View product information, pricing, sizes, colors and images.
-- **Buy Now** or **Add to Cart** options available.
-- **Add Wishlist** or **Remove Wishlist** options available.
+- Displays product info: Name, Price, Size, Color, Stock.
+- **Buy Now** launches bottom sheet to choose quantity and proceed.
+- **Add to Cart** updates the cart state in Firebase.
+- Wishlist feature with toggle animation (add/remove).
 
 ---
 
-## 5️⃣ Cart & Checkout
+### 5️⃣ Cart & Checkout Process
 <img src="assets/cart_screen.png" width="200"> <img src="assets/shipping_screen_1.png" width="200"> <img src="assets/shipping_screen_3.png" width="200">
 
-- View added products in cart.
-- Proceed to checkout with shipping details.
+- View cart items with quantity, price, and total calculation.
+- Increase or decrease quantity.
+- Proceed to checkout with saved shipping address or add a new one.
+- Real-time updates with Firebase.
 
 ---
 
-## 6️⃣ Payment & Order Success
-<img src="assets/payemnt_screen.png" width="200"> <img src="assets/payment_screen_2.png" width="200"> <img src="assets/payement_success_screen.png" width="200"> 
+### 6️⃣ Payment Gateway & Order Success
+<img src="assets/payemnt_screen.png" width="200"> <img src="assets/payment_screen_2.png" width="200"> <img src="assets/payement_success_screen.png" width="200">
 
-- Secure payment processing.
-- Order confirmation screen after successful purchase.
+- Choose between **Razorpay** for online payment or **Cash on Delivery (COD)**.
+- Payment success triggers order creation in Firebase.
+- Displays success screen with summary.
 
 ---
 
-## 7️⃣ Profile & Logout
+### 7️⃣ Order Management & Tracker
+<img src="assets/order_screen_1.png" width="200"> <img src="assets/order_detail_screen.png" width="200"> <img src="assets/order_tracking_screen.png" width="200">
+
+- View all past orders in the Orders section.
+- Tap an order → Order details with item list, price, address, and status.
+- Real-time order tracking UI: Ordered → Packed → Shipped → Delivered.
+
+---
+
+### 8️⃣ Wishlist & Notifications
+<img src="assets/wishlist_screen.png" width="200"> <img src="assets/notifications_screen.png" width="200">
+
+- Add/remove products to Wishlist.
+- Notification screen to show latest offers, order status, and messages.
+
+---
+
+### 9️⃣ Profile Management & Logout
 <img src="assets/profile_screen.png" width="200"> <img src="assets/edit_profile_screen.png" width="200"><img src="assets/logout_popup.png" width="200">
 
-- Users can see their profile details
-- Manage & Edit account details.
-- All data is fetched from Firebase Realtime Database.
-- Users can:
-Modify name, email, phone, and address.
-Change the profile picture.
-Save changes by clicking "Update Profile", which updates the data in Firebase.
-- Clicking "Log Out Button" opens a confirmation popup.
-- When Click "Log Out" on popup: Signs out the user from Firebase Authentication.
-Redirects them to the Login Screen.
+- Displays user info: name, email, phone, address, profile picture.
+- Edit profile data and update to Firebase in real-time.
+- Log out triggers a confirmation popup → signs out user from Firebase and navigates to login.
 
+---
 
-  
+## 🔧 Tech Stack
+
+- **Language:** Kotlin  
+- **UI:** Jetpack Compose  
+- **Auth:** Firebase Authentication (Email, Google, Facebook)  
+- **Database:** Firebase Realtime Database  
+- **Storage:** Firebase Storage  
+- **Image Loading:** Coil  
+- **Architecture:** MVVM + State Hoisting  
+- **Payment:** Razorpay SDK  
+- **Navigation:** Jetpack Navigation Compose
+- **Mode:** Dark Mode Supported
 
 ---
 
@@ -100,4 +129,5 @@ Redirects them to the Login Screen.
 ## 📞 Contact
 For queries, feel free to reach out:
 📧 Email: [sahusandeep26475@gmail.com](mailto:sahusandeep26475@gmail.com)
+
 
