@@ -72,33 +72,41 @@ fun WishListScreenUI(
 
     val getWishlistState = viewModel.getWishlistState.collectAsStateWithLifecycle()
     val wishlistData = getWishlistState.value.success
+    val deleteWishListState = viewModel.deleteWishListState.collectAsStateWithLifecycle()
+    LaunchedEffect(deleteWishListState.value.success) {
+        if (deleteWishListState.value.success != null) {
+            viewModel.getWishlistModel() // ✅ Re-fetch wishlist
+        }
+    }
+
+
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.weight(0.15f)) {
 
             Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(0.6f),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "My Wishlist",
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isSystemInDarkTheme()) Color.White else Color.Black
-                    )
-
-                }
-                Image(
-                    painter = painterResource(id = R.drawable.sign_top),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .weight(0.4f)
-                        .fillMaxSize(),
-                    alignment = Alignment.TopEnd
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(0.6f),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "My Wishlist",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isSystemInDarkTheme()) Color.White else Color.Black
                 )
+
+            }
+            Image(
+                painter = painterResource(id = R.drawable.sign_top),
+                contentDescription = null,
+                modifier = Modifier
+                    .weight(0.4f)
+                    .fillMaxSize(),
+                alignment = Alignment.TopEnd
+            )
 
         }
         Column(
@@ -106,8 +114,9 @@ fun WishListScreenUI(
                 .fillMaxWidth()
                 .weight(0.85f), horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             when {
-                getWishlistState.value.isLoading -> {
+                getWishlistState.value.isLoading  -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
@@ -119,7 +128,7 @@ fun WishListScreenUI(
                     }
                 }
 
-                !getWishlistState.value.isLoading && wishlistData.isEmpty()  -> {
+                !getWishlistState.value.isLoading && wishlistData.isEmpty() -> {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
@@ -153,6 +162,7 @@ fun WishListScreenUI(
 
 @Composable
 fun WishlistItem(navController: NavController, product: Products, viewModel: AppViewModel) {
+
 
     Card(
         modifier = Modifier
@@ -206,8 +216,6 @@ fun WishlistItem(navController: NavController, product: Products, viewModel: App
 
             IconButton(onClick = {
                 viewModel.deleteWishListModel(product.productId)
-                viewModel.resetWishlistState()
-                navController.navigate(Routes.WishListScreen)
 
             }) {
                 Icon(

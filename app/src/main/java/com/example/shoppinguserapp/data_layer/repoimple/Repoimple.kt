@@ -38,13 +38,13 @@ class Repoimple @Inject constructor(
         trySend(ResultState.Loading)
         firebaseAuth.createUserWithEmailAndPassword(userData.email, userData.password)
             .addOnSuccessListener {
-                firebaseFireStore.collection(USERS).document(it.user!!.uid.toString()).set(userData)
+                firebaseFireStore.collection(USERS).document(it.user?.uid.toString()).set(userData)
                     .addOnSuccessListener {
                         trySend(ResultState.Success("User Registered Successfully"))
                     }.addOnFailureListener {
                         trySend(ResultState.Error(it))
                     }
-                updateFcmToken(firebaseAuth.currentUser?.uid.toString())
+                updateFcmToken(it.user?.uid.toString())
 
             }.addOnFailureListener {
                 trySend(ResultState.Error(it))

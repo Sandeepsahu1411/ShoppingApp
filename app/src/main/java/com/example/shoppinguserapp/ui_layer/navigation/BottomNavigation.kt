@@ -53,7 +53,7 @@ fun BottomNavigation(
         modifier = Modifier
             .fillMaxWidth()
             .then(if (!isGestureNavigation) Modifier.navigationBarsPadding() else Modifier)
-            .height(70.dp)
+            .height(65.dp)
             .background(Color(0xFFEEEBD8), RoundedCornerShape(8.dp))
     ) {
         Row(

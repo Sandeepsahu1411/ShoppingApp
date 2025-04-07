@@ -58,6 +58,7 @@ class AppViewModel @Inject constructor(private val useCase: UseCase) : ViewModel
     val getWishlistState = _getWishListState.asStateFlow()
 
     private val _deleteWishListState = MutableStateFlow(DeleteWishListState())
+    val deleteWishListState = _deleteWishListState.asStateFlow()
 
     private val _uploadImageState = MutableStateFlow(ImageUploadState())
     val uploadImageState = _uploadImageState.asStateFlow()
