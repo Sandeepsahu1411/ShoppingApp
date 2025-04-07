@@ -56,8 +56,8 @@ A fully functional **Shopping App** built using **Jetpack Compose**, **Kotlin**,
 
 ---
 
-### 5️⃣ Cart & Checkout Process
-<img src="assets/cart_screen.png" width="200"> <img src="assets/shipping_screen_1.png" width="200"> <img src="assets/shipping_screen_3.png" width="200">
+### 5️⃣ Cart & Shipping Address Screen
+<img src="assets/cart_screen.png" width="200"> <img src="assets/shipping_screen_new_1.png" width="200"> <img src="assets/shipping_screen_new_2.png" width="200"><img src="assets/shipping_screen_new_3.png" width="200">
 
 - View cart items with quantity, price, and total calculation.
 - Increase or decrease quantity.
@@ -67,16 +67,16 @@ A fully functional **Shopping App** built using **Jetpack Compose**, **Kotlin**,
 ---
 
 ### 6️⃣ Payment Gateway & Order Success
-<img src="assets/payemnt_screen.png" width="200"> <img src="assets/payment_screen_2.png" width="200"> <img src="assets/payement_success_screen.png" width="200">
+<img src="assets/payment_screen_new.png" width="200">  <img src="assets/razorpay_screen_new.png" width="200"> <img src="assets/razerpay_screen_3.png" width="200"> <img src="assets/order_place.png" width="200">
 
 - Choose between **Razorpay** for online payment or **Cash on Delivery (COD)**.
 - Payment success triggers order creation in Firebase.
-- Displays success screen with summary.
+- Displays success screen with Animation.
 
 ---
 
 ### 7️⃣ Order Management & Tracker
-<img src="assets/order_screen_1.png" width="200"> <img src="assets/order_detail_screen.png" width="200"> <img src="assets/order_tracking_screen.png" width="200">
+<img src="assets/order_screen_1.png" width="200"> <img src="assets/order_screen_2.png" width="200"> 
 
 - View all past orders in the Orders section.
 - Tap an order → Order details with item list, price, address, and status.
@@ -93,11 +93,12 @@ A fully functional **Shopping App** built using **Jetpack Compose**, **Kotlin**,
 ---
 
 ### 9️⃣ Profile Management & Logout
-<img src="assets/profile_screen.png" width="200"> <img src="assets/edit_profile_screen.png" width="200"><img src="assets/logout_popup.png" width="200">
+<img src="assets/profile_screen_new.png" width="200"> <img src="assets/edit_profile_screen.png" width="200"><img src="assets/logout_popup.png" width="200">
 
 - Displays user info: name, email, phone, address, profile picture.
 - Edit profile data and update to Firebase in real-time.
 - Log out triggers a confirmation popup → signs out user from Firebase and navigates to login.
+- On click My Order Button screen navigate to orders screen info
 
 ---
 
