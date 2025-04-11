@@ -57,7 +57,7 @@ A fully functional **Shopping App** built using **Jetpack Compose**, **Kotlin**,
 ---
 
 ### 5️⃣ Cart & Shipping Address Screen
-<img src="assets/cart_screen.png" width="200"> <img src="assets/shipping_screen_new_1.png" width="200"> <img src="assets/shipping_screen_new_2.png" width="200">
+<img src="assets/cart_screen.png" width="200"> <img src="assets/shipping_screen_new_1.png" width="200"> <img src="assets/shipping_screen_new_2.png" width="200"> <img src="assets/shipping_screen_new_3.png" width="200">
 
 - View cart items with quantity, price, and total calculation.
 - Increase or decrease quantity.
