@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -45,6 +46,7 @@ import androidx.navigation.NavController
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.domen_layer.data_model.UserData
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
+import com.example.shoppinguserapp.ui_layer.screens.CustomButton
 import com.example.shoppinguserapp.ui_layer.screens.CustomOutlinedTextField
 import com.example.shoppinguserapp.ui_layer.screens.SuccessDialog
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
@@ -172,24 +174,25 @@ fun SignUpScreenUI(
                     Modifier.fillMaxWidth(), isPassword = true,
                     keyboardType = KeyboardType.Password,
                 )
-                Button(
+                CustomButton(
+                    text = "Sign Up",
                     onClick = {
                         if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
                             Toast.makeText(context, "Required All fields", Toast.LENGTH_SHORT)
                                 .show()
-                            return@Button
+                            return@CustomButton
                         }
                         val emailPattern =
                             Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]{2,3}\$")
                         if (!emailPattern.matches(email)) {
                             Toast.makeText(context, "Invalid email", Toast.LENGTH_SHORT)
                                 .show()
-                            return@Button
+                            return@CustomButton
                         }
                         if (password != confirmPassword) {
                             Toast.makeText(context, "Password doesn't match", Toast.LENGTH_SHORT)
                                 .show()
-                            return@Button
+                            return@CustomButton
                         }
                         val data = UserData(
                             firstName = firstName,
@@ -201,21 +204,7 @@ fun SignUpScreenUI(
 
 
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 5.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF68B8B),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        text = "Sign Up",
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -246,7 +235,7 @@ fun SignUpScreenUI(
                     HorizontalDivider(
                         modifier = Modifier
                             .weight(1f)
-                            .height(4.dp), color = Color.DarkGray
+                            .height(4.dp), color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray
                     )
                     Text(
                         text = " Or ".uppercase(),
@@ -258,73 +247,67 @@ fun SignUpScreenUI(
                     HorizontalDivider(
                         modifier = Modifier
                             .weight(1f)
-                            .height(4.dp), color = Color.DarkGray
+                            .height(4.dp), color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray
                     )
                 }
                 OutlinedIconButton(
                     onClick = { },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(55.dp),
-                    shape = RoundedCornerShape(18.dp),
+                        .height(45.dp),
+                    shape = RoundedCornerShape(10.dp),
                 ) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp),
-
-                        verticalAlignment = Alignment.CenterVertically
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.facebook),
                             contentDescription = null,
                             modifier = Modifier
-                                .padding(start = 20.dp)
-                                .size(40.dp),
-                            alignment = Alignment.CenterStart
+                                .size(30.dp),
                         )
+                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = "Login with Facebook",
-                            fontSize = 20.sp,
+                            fontSize = 18.sp,
                             color = Color.Gray,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
+                            modifier = Modifier
+                                .padding(vertical = 10.dp),
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(6.dp))
                 OutlinedIconButton(
                     onClick = { },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(55.dp),
-                    shape = RoundedCornerShape(18.dp),
+                        .height(45.dp),
+                    shape = RoundedCornerShape(10.dp),
                 ) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp),
-
-                        verticalAlignment = Alignment.CenterVertically
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.google),
                             contentDescription = null,
                             modifier = Modifier
-                                .padding(start = 20.dp)
-                                .size(40.dp),
-                            alignment = Alignment.CenterStart
+                                .size(30.dp),
                         )
+                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = "Login with Google",
-                            fontSize = 20.sp,
+                            fontSize = 18.sp,
                             color = Color.Gray,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
+                            modifier = Modifier
+                                .padding(vertical = 10.dp),
                         )
                     }
                 }
-
             }
             Image(
                 painter = painterResource(id = R.drawable.sign_bottom),
@@ -338,7 +321,6 @@ fun SignUpScreenUI(
         }
         SuccessDialog(showDialog = showDialog, onDismiss = {
             showDialog = false
-            firebaseAuth.signOut()
             navController.navigate(Routes.SignInScreen ) {
                 popUpTo(Routes.SignUpScreen) {
                     inclusive = true

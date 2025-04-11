@@ -44,6 +44,12 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/DEPENDENCIES"
+        }
+    }
 }
 
 dependencies {
@@ -97,6 +103,8 @@ dependencies {
 
     implementation ("com.google.accompanist:accompanist-permissions:0.32.0")
 
+    //oauth2
+    implementation("com.google.auth:google-auth-library-oauth2-http:1.16.0")
 
 
 }

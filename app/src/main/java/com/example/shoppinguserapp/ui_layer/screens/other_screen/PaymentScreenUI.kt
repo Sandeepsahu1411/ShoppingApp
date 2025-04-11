@@ -53,11 +53,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.shoppinguserapp.MainActivity
 import com.example.shoppinguserapp.R
+import com.example.shoppinguserapp.data_layer.notifications.createNotificationChannel
+import com.example.shoppinguserapp.data_layer.notifications.sendNotification
 import com.example.shoppinguserapp.domen_layer.data_model.OrderModel
 import com.example.shoppinguserapp.domen_layer.data_model.ProductItem
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
 import com.example.shoppinguserapp.ui_layer.screens.CustomButton
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
+import com.example.shoppinguserapp.ui_layer.viewmodel.NotificationViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.util.UUID
 
 @Composable
@@ -67,7 +72,9 @@ fun PaymentScreenUI(
     productSize: String,
     productColor: String,
     productQty: String,
-    viewModel: AppViewModel = hiltViewModel()
+    viewModel: AppViewModel = hiltViewModel(),
+    notificationViewModel: NotificationViewModel = hiltViewModel()
+
 ) {
 
     val getCartState = viewModel.getCartState.collectAsStateWithLifecycle()
@@ -117,6 +124,8 @@ fun PaymentScreenUI(
             if (productId.isEmpty()) {
                 viewModel.deleteProductCart()
             }
+            createNotificationChannel(context)
+            sendNotification(context, notificationViewModel)
             navController.navigate(Routes.PaymentSuccessScreen) {
                 popUpTo(Routes.HomeScreen) {
                     inclusive = false
@@ -365,7 +374,7 @@ fun PaymentMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
             Card(
                 modifier = Modifier
                     .padding(5.dp)
-                    .clickable{
+                    .clickable {
                         onMethodSelected("Online")
                     }, colors = CardDefaults.cardColors(
                     containerColor =

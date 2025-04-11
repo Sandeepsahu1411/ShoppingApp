@@ -2,6 +2,7 @@ package com.example.shoppinguserapp.domen_layer.use_case
 
 import android.net.Uri
 import com.example.shoppinguserapp.domen_layer.data_model.CartModel
+import com.example.shoppinguserapp.domen_layer.data_model.NotificationModel
 import com.example.shoppinguserapp.domen_layer.data_model.OrderModel
 import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.domen_layer.data_model.ShippingModel
@@ -43,6 +44,13 @@ class UseCase @Inject constructor(private val repo: Repo) {
 
     fun addOrderUseCase(orderModel: OrderModel) = repo.addOrderRepo(orderModel)
     fun getOrderUseCase() = repo.getOrderRepo()
+
+//Notifications
+
+    fun addNotificationUseCase(notificationModel: NotificationModel) = repo.addNotificationRepo(notificationModel)
+    fun getNotificationUseCase() = repo.getNotificationsRepo()
+    fun markNotificationAsReadUseCase(notificationId: String) =
+        repo.markNotificationAsSeenRepo(notificationId)
 
 
 

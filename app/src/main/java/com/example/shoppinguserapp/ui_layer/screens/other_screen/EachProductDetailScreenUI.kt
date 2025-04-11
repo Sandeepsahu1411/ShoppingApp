@@ -434,7 +434,6 @@ fun ButtonsContent(
                 if (checkCartState.value.success) {
                     navController.navigate(Routes.CartScreen)
                 } else {
-//                    if (selectedSize.isNotEmpty() && selectedColor != Color.Transparent) {
                     val cartModel = productsData?.toCartModel(
                         qty = count,
                         color = colorToHex(selectedColor),
@@ -442,11 +441,6 @@ fun ButtonsContent(
                     )
                     viewModel.addProductCart(cartModel!!)
 
-//                    } else {
-//                        Toast.makeText(
-//                            context, "Please select size and color", Toast.LENGTH_SHORT
-//                        ).show()
-//                    }
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -464,8 +458,8 @@ fun ButtonsContent(
             } else {
                 Text(
                     text = if (checkCartState.value.success) "Go to Cart " else "Add to Cart ",
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(vertical = 5.dp)
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(vertical = 3.dp)
                 )
             }
         }

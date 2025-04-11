@@ -184,7 +184,15 @@ fun ShippingScreenUI(
                     }
 
                     item {
-                        ShippingAddress(viewModel, addressData, navController)
+                        ShippingAddress(
+                            viewModel,
+                            addressData,
+                            navController,
+                            productId,
+                            productSize,
+                            productColor,
+                            productQty
+                        )
 //
                     }
                     item {
@@ -197,7 +205,7 @@ fun ShippingScreenUI(
                         CustomButton(
                             text = "Continue to Payment",
                             onClick = {
-                                if (addressData != null && addressData.email.isNotEmpty()){
+                                if (addressData != null && addressData.email.isNotEmpty()) {
                                     navController.navigate(
                                         Routes.PaymentScreen(
                                             productId = productId,
@@ -206,7 +214,7 @@ fun ShippingScreenUI(
                                             productQty = productQty
                                         )
                                     )
-                                }else{
+                                } else {
                                     Toast.makeText(
                                         context, "Please add shipping address",
                                         Toast.LENGTH_SHORT
@@ -509,7 +517,11 @@ fun EachBuyProductDetail(
 fun ShippingAddress(
     viewModel: AppViewModel,
     addressData: ShippingModel?,
-    navController: NavController
+    navController: NavController,
+    productId: String,
+    productSize: String,
+    productColor: String,
+    productQty: String
 ) {
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
@@ -634,7 +646,11 @@ fun ShippingAddress(
                 onDismiss = { showBottomSheet = false },
                 bottomSheetState,
                 addressData,
-                navController
+                navController,
+                productId = productId,
+                productSize = productSize,
+                productColor = productColor,
+                productQty = productQty
             )
         }
     }
@@ -649,7 +665,11 @@ fun ContactShippingAddress(
     onDismiss: () -> Unit,
     bottomSheetState: SheetState,
     addressData: ShippingModel?,
-    navController: NavController
+    navController: NavController,
+    productId: String,
+    productSize: String,
+    productColor: String,
+    productQty: String
 ) {
     val addShippingAddress = viewModel.addShippingState.collectAsStateWithLifecycle()
     var selectedCountry by remember { mutableStateOf("india") }
@@ -685,10 +705,10 @@ fun ContactShippingAddress(
             onDismiss()
             navController.navigate(
                 Routes.ShippingScreen(
-                    productId = "",
-                    productSize = "",
-                    productColor = "",
-                    productQty = ""
+                    productId = productId,
+                    productSize = productSize,
+                    productColor = productColor,
+                    productQty = productQty
                 )
             )
         }
@@ -920,6 +940,7 @@ fun ShippingMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
                 Text(
                     text = "Standard FREE delivery over Rs:4500",
                     fontSize = 14.sp,
+                    lineHeight = 16.sp,
                     modifier = Modifier.weight(0.7f)
 
                 )
@@ -931,7 +952,7 @@ fun ShippingMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(0.2f),
-                    textAlign = TextAlign.End
+                    textAlign = TextAlign.Center
 
                 )
             }
@@ -945,11 +966,11 @@ fun ShippingMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
                     onClick = { onMethodSelected("COD") },
                     colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFF68B8B)),
                     modifier = Modifier.weight(0.1f)
-
                 )
                 Text(
                     text = "Cash on delivery over Rs:4500 (Free Delivery, COD processing fee only)",
                     fontSize = 14.sp,
+                    lineHeight = 16.sp,
                     modifier = Modifier.weight(0.7f)
                 )
 
@@ -961,7 +982,7 @@ fun ShippingMethod(selectedMethod: String, onMethodSelected: (String) -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(0.2f),
-                    textAlign = TextAlign.End
+                    textAlign = TextAlign.Center
 
                 )
             }
@@ -984,142 +1005,4 @@ val countryList = listOf(
     Country("Australia", "https://flagcdn.com/16x12/au.png")
 )
 
-
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .border(1.dp, Color(0xFFF68B8B), shape = RoundedCornerShape(18.dp))
-//            ) {
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(15.dp),
-//                    verticalArrangement = Arrangement.spacedBy(10.dp)
-//
-//                ) {
-//                    Row {
-//                        Text(text = "Contact", fontSize = 18.sp)
-//                        Spacer(modifier = Modifier.weight(1f))
-//                        Text(
-//                            text = "Change",
-//                            color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
-//                            fontSize = 18.sp,
-//                            fontWeight = FontWeight.Bold
-//                        )
-//                    }
-//                    HorizontalDivider(thickness = 2.dp)
-//                    Row {
-//                        Text(text = "Ship to", fontSize = 18.sp)
-//                        Spacer(modifier = Modifier.weight(1f))
-//                        Text(
-//                            text = "Change",
-//                            color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color.Gray,
-//                            fontSize = 18.sp,
-//                            fontWeight = FontWeight.Bold
-//                        )
-//                    }
-//
-//
-//                }
-//            }
-
-
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun CountryDropdownWithApi(
-//    selectedCountry: String, selectedFlag: String?, onCountrySelected: (String, String) -> Unit
-//) {
-//    var expanded by remember { mutableStateOf(false) }
-//    var countries by remember { mutableStateOf<List<CountryResponse>>(emptyList()) }
-//    var isLoading by remember { mutableStateOf(true) }
-//
-//    // Fetch countries and sort A-Z
-//    LaunchedEffect(Unit) {
-//        isLoading = true
-//        try {
-//            countries = RetrofitInstance.api.getAllCountries().sortedBy { it.name.common }
-//        } catch (e: Exception) {
-//            e.printStackTrace() // Handle error
-//        } finally {
-//            isLoading = false
-//        }
-//    }
-//
-//
-//    Box(
-//        modifier = Modifier.fillMaxWidth(),
-//        contentAlignment = Alignment.TopEnd // Align dropdown to the right
-//    ) {
-//        // Dropdown Field with Selected Flag and Name
-//        OutlinedTextField(
-//            value = selectedCountry,
-//            onValueChange = {},
-//            label = { Text("Country / Region") },
-//            readOnly = true,
-//            leadingIcon = {
-//                if (selectedFlag != null) {
-//                    AsyncImage(
-//                        model = selectedFlag,
-//                        contentDescription = "Selected Country Flag",
-//                        modifier = Modifier.size(24.dp)
-//                    )
-//                } else {
-//                    Icon(
-//                        imageVector = Icons.Default.Flag,
-//                        contentDescription = "Dropdown",
-//                        tint = if (isSystemInDarkTheme()) Color.White else Color.Gray,
-//                    )
-//                }
-//            },
-//            trailingIcon = {
-//                IconButton(onClick = { expanded = !expanded }) {
-//                    Icon(
-//                        if (!expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-//                        contentDescription = "Dropdown",
-//                        tint = Color(0xFFF68B8B)
-//                    )
-//                }
-//            },
-//            modifier = Modifier.fillMaxWidth(),
-//            shape = RoundedCornerShape(12.dp),
-//            colors = TextFieldDefaults.textFieldColors(
-//                containerColor = Color.Transparent,
-//                focusedIndicatorColor = Color(0xFFF68B8B),
-//                unfocusedIndicatorColor = Color(0xFFF68B8B),
-//            )
-//
-//        )
-//
-//        // Dropdown Menu
-//        DropdownMenu(
-//            expanded = expanded,
-//            onDismissRequest = { expanded = false },
-//            modifier = Modifier
-//                .width(250.dp) // Restrict width
-//                .heightIn(max = 300.dp) // Restrict height
-//        ) {
-//            if (isLoading) {
-//                DropdownMenuItem(text = { Text("Loading...") }, onClick = {})
-//            } else {
-//                countries.forEach { country ->
-//                    DropdownMenuItem(text = {
-//                        Row(verticalAlignment = Alignment.CenterVertically) {
-//                            AsyncImage(
-//                                model = country.flags.png,
-//                                contentDescription = "${country.name.common} Flag",
-//                                modifier = Modifier
-//                                    .size(24.dp)
-//                                    .padding(end = 8.dp)
-//                            )
-//                            Text(country.name.common)
-//                        }
-//                    }, onClick = {
-//                        onCountrySelected(country.name.common, country.flags.png)
-//                        expanded = false
-//                    })
-//                }
-//            }
-//        }
-//    }
-//}
 

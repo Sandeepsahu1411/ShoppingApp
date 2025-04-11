@@ -53,7 +53,7 @@ fun BottomNavigation(
         modifier = Modifier
             .fillMaxWidth()
             .then(if (!isGestureNavigation) Modifier.navigationBarsPadding() else Modifier)
-            .height(65.dp)
+            .height(60.dp)
             .background(Color(0xFFEEEBD8), RoundedCornerShape(8.dp))
     ) {
         Row(
@@ -92,12 +92,12 @@ fun BottomNavigation(
                                     if (selectedItemIndex == index) Color(0xFFf68b8b) else Color.Companion.Transparent,
                                     RoundedCornerShape(5.dp, 5.dp, 5.dp, 5.dp)
                                 )
-                                .size(50.dp), contentAlignment = Alignment.Companion.Center
+                                .size(40.dp), contentAlignment = Alignment.Companion.Center
                         ) {
                             Icon(
                                 imageVector = if (selectedItemIndex == index) item.selectedIcon else item.unselectedIcon,
                                 contentDescription = null,
-                                modifier = Modifier.size(30.dp),
+                                modifier = Modifier.size(25.dp),
                                 tint = if (selectedItemIndex == index) Color.Companion.White else Color.Companion.Black
                             )
                         }

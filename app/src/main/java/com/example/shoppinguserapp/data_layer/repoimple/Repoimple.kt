@@ -1,9 +1,12 @@
 package com.example.shoppinguserapp.data_layer.repoimple
 
 import android.net.Uri
+import android.util.Log
 import com.example.shoppinguserapp.common.ADD_TO_CART
 import com.example.shoppinguserapp.common.ADD_TO_CART_BY_USER
 import com.example.shoppinguserapp.common.CATEGORY
+import com.example.shoppinguserapp.common.NOTIFICATIONS
+import com.example.shoppinguserapp.common.NOTIFICATIONS_BY_USER
 import com.example.shoppinguserapp.common.ORDER
 import com.example.shoppinguserapp.common.PRODUCTS
 import com.example.shoppinguserapp.common.ResultState
@@ -12,8 +15,10 @@ import com.example.shoppinguserapp.common.USERS
 import com.example.shoppinguserapp.common.USER_TOKEN
 import com.example.shoppinguserapp.common.WISHLIST
 import com.example.shoppinguserapp.common.WISHLIST_BY_USER
+import com.example.shoppinguserapp.data_layer.notifications.PushNotification
 import com.example.shoppinguserapp.domen_layer.data_model.CartModel
 import com.example.shoppinguserapp.domen_layer.data_model.Category
+import com.example.shoppinguserapp.domen_layer.data_model.NotificationModel
 import com.example.shoppinguserapp.domen_layer.data_model.OrderModel
 import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.domen_layer.data_model.ShippingModel
@@ -21,6 +26,7 @@ import com.example.shoppinguserapp.domen_layer.data_model.UserData
 import com.example.shoppinguserapp.domen_layer.repo.Repo
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
@@ -32,44 +38,49 @@ class Repoimple @Inject constructor(
     private val firebaseFireStore: FirebaseFirestore,
     private val firebaseAuth: FirebaseAuth,
     private val firebaseStorage: FirebaseStorage,
-    private val firebaseMessaging: FirebaseMessaging
+    private val firebaseMessaging: FirebaseMessaging,
+    private val pushNotification: PushNotification
 ) : Repo {
+
     override fun registerUser(userData: UserData): Flow<ResultState<String>> = callbackFlow {
         trySend(ResultState.Loading)
+
         firebaseAuth.createUserWithEmailAndPassword(userData.email, userData.password)
-            .addOnSuccessListener {
-                firebaseFireStore.collection(USERS).document(it.user?.uid.toString()).set(userData)
+            .addOnSuccessListener { authResult ->
+                val userId = authResult.user?.uid ?: return@addOnSuccessListener
+
+                firebaseFireStore.collection(USERS).document(userId).set(userData)
                     .addOnSuccessListener {
+                        updateFcmToken(userId)
                         trySend(ResultState.Success("User Registered Successfully"))
                     }.addOnFailureListener {
                         trySend(ResultState.Error(it))
                     }
-                updateFcmToken(it.user?.uid.toString())
 
             }.addOnFailureListener {
                 trySend(ResultState.Error(it))
             }
-        awaitClose {
-            close()
-        }
 
-
+        awaitClose { close() }
     }
 
-    override fun loginUser(
-        userEmail: String, userPassword: String
-    ): Flow<ResultState<String>> = callbackFlow {
-        trySend(ResultState.Loading)
-        firebaseAuth.signInWithEmailAndPassword(userEmail, userPassword).addOnSuccessListener {
-            trySend(ResultState.Success("User Logged In Successfully"))
-        }.addOnFailureListener {
-            trySend(ResultState.Error(it))
+    override fun loginUser(userEmail: String, userPassword: String): Flow<ResultState<String>> =
+        callbackFlow {
+            trySend(ResultState.Loading)
+
+            firebaseAuth.signInWithEmailAndPassword(userEmail, userPassword).addOnSuccessListener {
+                val userId = firebaseAuth.currentUser?.uid
+                if (userId != null) {
+                    updateFcmToken(userId)
+                }
+                trySend(ResultState.Success("User Logged In Successfully"))
+            }.addOnFailureListener {
+                trySend(ResultState.Error(it))
+            }
+
+            awaitClose { close() }
         }
-        updateFcmToken(firebaseAuth.currentUser?.uid.toString())
-        awaitClose {
-            close()
-        }
-    }
+
 
     override fun getUserDetails(uid: String): Flow<ResultState<UserData>> = callbackFlow {
         trySend(ResultState.Loading)
@@ -260,8 +271,7 @@ class Repoimple @Inject constructor(
 
     override fun uploadImage(imageUri: Uri): Flow<ResultState<String>> = callbackFlow {
         trySend(ResultState.Loading)
-        firebaseStorage.reference.child("userProfile/${imageUri.lastPathSegment}")
-            .putFile(imageUri)
+        firebaseStorage.reference.child("userProfile/${imageUri.lastPathSegment}").putFile(imageUri)
             .addOnSuccessListener {
                 it.storage.downloadUrl.addOnSuccessListener { uri ->
                     trySend(ResultState.Success(uri.toString()))
@@ -277,57 +287,53 @@ class Repoimple @Inject constructor(
 
     }
 
-    override fun productCartRepo(cartModel: CartModel): Flow<ResultState<String>> =
-        callbackFlow {
-            trySend(ResultState.Loading)
-            firebaseFireStore.collection(ADD_TO_CART)
-                .document(firebaseAuth.currentUser?.uid.toString())
-                .collection(
-                    ADD_TO_CART_BY_USER
-                ).whereEqualTo("productId", cartModel.productId).get().addOnSuccessListener {
-                    if (it.documents.isNotEmpty()) {
-                        firebaseFireStore.collection(ADD_TO_CART)
-                            .document(firebaseAuth.currentUser?.uid.toString())
-                            .collection(ADD_TO_CART_BY_USER).document(it.documents[0].id)
-                            .delete()
-                            .addOnSuccessListener {
-                                trySend(ResultState.Success("Removed from Cart"))
-                                close()
-                            }.addOnFailureListener {
-                                trySend(ResultState.Error(it))
-                                close()
-                            }
-                        return@addOnSuccessListener
+    override fun productCartRepo(cartModel: CartModel): Flow<ResultState<String>> = callbackFlow {
+        trySend(ResultState.Loading)
+        firebaseFireStore.collection(ADD_TO_CART).document(firebaseAuth.currentUser?.uid.toString())
+            .collection(
+                ADD_TO_CART_BY_USER
+            ).whereEqualTo("productId", cartModel.productId).get().addOnSuccessListener {
+                if (it.documents.isNotEmpty()) {
+                    firebaseFireStore.collection(ADD_TO_CART)
+                        .document(firebaseAuth.currentUser?.uid.toString())
+                        .collection(ADD_TO_CART_BY_USER).document(it.documents[0].id).delete()
+                        .addOnSuccessListener {
+                            trySend(ResultState.Success("Removed from Cart"))
+                            close()
+                        }.addOnFailureListener {
+                            trySend(ResultState.Error(it))
+                            close()
+                        }
+                    return@addOnSuccessListener
 
-                    } else {
-                        firebaseFireStore.collection(ADD_TO_CART)
-                            .document(firebaseAuth.currentUser?.uid.toString())
-                            .collection(ADD_TO_CART_BY_USER).document().set(cartModel)
-                            .addOnSuccessListener {
-                                trySend(ResultState.Success("Added to Cart"))
-                                close()
-                            }.addOnFailureListener {
-                                trySend(ResultState.Error(it))
-                                close()
-                            }
-                    }
-                }.addOnFailureListener {
-                    trySend(ResultState.Error(it))
-                    return@addOnFailureListener
+                } else {
+                    firebaseFireStore.collection(ADD_TO_CART)
+                        .document(firebaseAuth.currentUser?.uid.toString())
+                        .collection(ADD_TO_CART_BY_USER).document().set(cartModel)
+                        .addOnSuccessListener {
+                            trySend(ResultState.Success("Added to Cart"))
+                            close()
+                        }.addOnFailureListener {
+                            trySend(ResultState.Error(it))
+                            close()
+                        }
                 }
-
-            awaitClose {
-                close()
+            }.addOnFailureListener {
+                trySend(ResultState.Error(it))
+                return@addOnFailureListener
             }
 
+        awaitClose {
+            close()
         }
+
+    }
 
     override fun checkProductCartRepo(productId: String): Flow<ResultState<Boolean>> =
         callbackFlow {
             trySend(ResultState.Loading)
             firebaseFireStore.collection(ADD_TO_CART)
-                .document(firebaseAuth.currentUser?.uid.toString())
-                .collection(ADD_TO_CART_BY_USER)
+                .document(firebaseAuth.currentUser?.uid.toString()).collection(ADD_TO_CART_BY_USER)
                 .whereEqualTo("productId", productId).get().addOnSuccessListener {
                     if (it.documents.isNotEmpty()) {
                         trySend(ResultState.Success(true))
@@ -346,8 +352,7 @@ class Repoimple @Inject constructor(
 
     override fun getProductsCartRepo(): Flow<ResultState<List<CartModel>>> = callbackFlow {
         trySend(ResultState.Loading)
-        firebaseFireStore.collection(ADD_TO_CART)
-            .document(firebaseAuth.currentUser?.uid.toString())
+        firebaseFireStore.collection(ADD_TO_CART).document(firebaseAuth.currentUser?.uid.toString())
             .collection(ADD_TO_CART_BY_USER).get().addOnSuccessListener {
                 val data = it.documents.mapNotNull {
                     it.toObject(CartModel::class.java)
@@ -364,27 +369,25 @@ class Repoimple @Inject constructor(
 
     }
 
-    override fun deleteProductCartRepo(): Flow<ResultState<String>> =
-        callbackFlow {
-            trySend(ResultState.Loading)
-            firebaseFireStore.collection(ADD_TO_CART)
-                .document(firebaseAuth.currentUser?.uid.toString())
-                .collection(ADD_TO_CART_BY_USER).get().addOnSuccessListener {
-                    it.documents.forEach {
-                        firebaseFireStore.collection(ADD_TO_CART)
-                            .document(firebaseAuth.currentUser?.uid.toString())
-                            .collection(ADD_TO_CART_BY_USER).document(it.id).delete()
-                            .addOnSuccessListener {
-                                trySend(ResultState.Success("Cart Cleared"))
-                                close()
-                            }.addOnFailureListener {
-                                trySend(ResultState.Error(it))
-                                close()
-                            }
-                    }
+    override fun deleteProductCartRepo(): Flow<ResultState<String>> = callbackFlow {
+        trySend(ResultState.Loading)
+        firebaseFireStore.collection(ADD_TO_CART).document(firebaseAuth.currentUser?.uid.toString())
+            .collection(ADD_TO_CART_BY_USER).get().addOnSuccessListener {
+                it.documents.forEach {
+                    firebaseFireStore.collection(ADD_TO_CART)
+                        .document(firebaseAuth.currentUser?.uid.toString())
+                        .collection(ADD_TO_CART_BY_USER).document(it.id).delete()
+                        .addOnSuccessListener {
+                            trySend(ResultState.Success("Cart Cleared"))
+                            close()
+                        }.addOnFailureListener {
+                            trySend(ResultState.Error(it))
+                            close()
+                        }
                 }
-            awaitClose { close() }
-        }
+            }
+        awaitClose { close() }
+    }
 
     override fun updateProductCartRepo(
         productId: String, newQty: Int
@@ -393,8 +396,7 @@ class Repoimple @Inject constructor(
 
         val userId = firebaseAuth.currentUser?.uid.toString()
 
-        firebaseFireStore.collection(ADD_TO_CART).document(userId)
-            .collection(ADD_TO_CART_BY_USER)
+        firebaseFireStore.collection(ADD_TO_CART).document(userId).collection(ADD_TO_CART_BY_USER)
             .whereEqualTo("productId", productId).get().addOnSuccessListener { documents ->
                 if (documents.documents.isNotEmpty()) {
                     val docId = documents.documents[0].id
@@ -440,10 +442,8 @@ class Repoimple @Inject constructor(
 
     override fun getShippingRepo(): Flow<ResultState<ShippingModel>> = callbackFlow {
         trySend(ResultState.Loading)
-        firebaseFireStore.collection(SHIPPING)
-            .document(firebaseAuth.currentUser?.uid.toString())
-            .get()
-            .addOnSuccessListener {
+        firebaseFireStore.collection(SHIPPING).document(firebaseAuth.currentUser?.uid.toString())
+            .get().addOnSuccessListener {
                 val data = it.toObject(ShippingModel::class.java)
                 trySend(ResultState.Success(data.let {
                     data ?: ShippingModel()
@@ -460,14 +460,15 @@ class Repoimple @Inject constructor(
     override fun addOrderRepo(orderModel: OrderModel): Flow<ResultState<String>> = callbackFlow {
         trySend(ResultState.Loading)
         val updatedOrderModel = orderModel.copy(userId = firebaseAuth.currentUser?.uid.toString())
-        firebaseFireStore.collection(ORDER)
-            .add(updatedOrderModel)
-            .addOnSuccessListener {
-                trySend(ResultState.Success("Order Placed"))
-            }
-            .addOnFailureListener {
-                trySend(ResultState.Error(it))
-            }
+        firebaseFireStore.collection(ORDER).add(updatedOrderModel).addOnSuccessListener {
+            trySend(ResultState.Success("Order Placed"))
+            pushNotification.sendNotification(
+                title = "Order Placed", message = "Your order has been placed successfully."
+            )
+
+        }.addOnFailureListener {
+            trySend(ResultState.Error(it))
+        }
 
         awaitClose { close() }
     }
@@ -478,32 +479,100 @@ class Repoimple @Inject constructor(
         val currentUser = FirebaseAuth.getInstance().currentUser
         val userId = currentUser?.uid ?: ""
 
-        firebaseFireStore.collection(ORDER)
-            .whereEqualTo("userId", userId)
-            .get()
+        firebaseFireStore.collection(ORDER).whereEqualTo("userId", userId).get()
             .addOnSuccessListener { querySnapshot ->
                 val data = querySnapshot.documents.mapNotNull {
                     it.toObject(OrderModel::class.java)
                 }
                 trySend(ResultState.Success(data))
-            }
-            .addOnFailureListener { exception ->
+            }.addOnFailureListener { exception ->
                 trySend(ResultState.Error(exception))
             }
 
         awaitClose { close() }
     }
 
-    fun updateFcmToken(userId: String) {
-        firebaseMessaging.token.addOnCompleteListener {
-            if (it.isSuccessful) {
-                val token = it.result
-                firebaseFireStore.collection(USER_TOKEN).document(userId).set(mapOf("token" to token))
+    private fun updateFcmToken(userId: String) {
+        firebaseMessaging.token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                val tokenData = mapOf("token" to token)
+
+                firebaseFireStore.collection(USER_TOKEN).document(userId).set(tokenData)
+                    .addOnSuccessListener {
+                        Log.d("FCM", "Token updated for user: $userId")
+                    }.addOnFailureListener {
+                        Log.e("FCM", "Failed to update token", it)
+                    }
+            } else {
+                Log.e("FCM", "Token fetch failed", task.exception)
             }
+        }
+    }
+
+    override fun addNotificationRepo(notification: NotificationModel): Flow<ResultState<String>> =
+        callbackFlow {
+            trySend(ResultState.Loading)
+            val uid = firebaseAuth.currentUser?.uid.toString()
+            val docRef = firebaseFireStore.collection(NOTIFICATIONS).document(uid)
+                .collection(NOTIFICATIONS_BY_USER).document()
+            val updateNotification = notification.copy(notificationId = docRef.id)
+
+            docRef.set(updateNotification).addOnSuccessListener {
+                trySend(ResultState.Success("Notification Added"))
+            }.addOnFailureListener {
+                trySend(ResultState.Error(it))
+            }
+
+            awaitClose {
+                close()
+            }
+
+        }
+
+    override fun getNotificationsRepo(): Flow<ResultState<List<NotificationModel>>> = callbackFlow {
+        trySend(ResultState.Loading)
+        val uid = firebaseAuth.currentUser?.uid.toString()
+        firebaseFireStore.collection(NOTIFICATIONS).document(uid).collection(NOTIFICATIONS_BY_USER)
+            .orderBy(
+                "timestamp",
+                Query.Direction.DESCENDING
+            ).addSnapshotListener { snapshot, exception ->
+                if (exception != null) {
+                    trySend(ResultState.Error(exception))
+                    return@addSnapshotListener
+                }
+                val list = snapshot?.toObjects(NotificationModel::class.java) ?: emptyList()
+                trySend(ResultState.Success(list))
+
+            }
+        awaitClose {
+            close()
         }
 
 
     }
+
+    override fun markNotificationAsSeenRepo(notificationId: String): Flow<ResultState<String>> =
+        callbackFlow {
+            trySend(ResultState.Loading)
+
+            val uid = firebaseAuth.currentUser?.uid ?: return@callbackFlow
+            val docRef = firebaseFireStore.collection(NOTIFICATIONS)
+                .document(uid)
+                .collection(NOTIFICATIONS_BY_USER)
+                .document(notificationId)
+
+            docRef.update("seen", true)
+                .addOnSuccessListener {
+                    trySend(ResultState.Success("Marked as seen"))
+                }
+                .addOnFailureListener {
+                    trySend(ResultState.Error(it))
+                }
+
+            awaitClose { close() }
+        }
 
 
 }

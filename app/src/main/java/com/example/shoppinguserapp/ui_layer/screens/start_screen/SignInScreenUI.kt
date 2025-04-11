@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -45,8 +46,10 @@ import androidx.navigation.NavController
 import com.example.shoppinguserapp.R
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
 import com.example.shoppinguserapp.ui_layer.navigation.SubNavigation
+import com.example.shoppinguserapp.ui_layer.screens.CustomButton
 import com.example.shoppinguserapp.ui_layer.screens.CustomOutlinedTextField
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
+import com.google.common.math.LinearTransformation.horizontal
 
 @Composable
 fun SignInScreenUI(
@@ -146,34 +149,22 @@ fun SignInScreenUI(
                         .align(Alignment.End)
                 )
                 Spacer(modifier = Modifier.height(0.dp))
-                Button(
-                    onClick = {
+                CustomButton(
+                    text= "Login",
+                    onClick= {
                         if (userEmail.isEmpty() || userPassword.isEmpty()) {
                             Toast.makeText(context, "All fields are required", Toast.LENGTH_SHORT)
                                 .show()
-                            return@Button
+                            return@CustomButton
                         }
                         viewModel.loginUser(userEmail, userPassword)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF68B8B),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        text = "Login",
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
+                    }
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-
                     Text(
                         text = "Don't have an account? ",
                         color = if (isSystemInDarkTheme()) Color.White else Color.Gray,
@@ -198,7 +189,7 @@ fun SignInScreenUI(
                     HorizontalDivider(
                         modifier = Modifier
                             .weight(1f)
-                            .height(4.dp), color = Color.DarkGray
+                            .height(4.dp), color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray
                     )
                     Text(
                         text = " Or ".uppercase(),
@@ -210,69 +201,64 @@ fun SignInScreenUI(
                     HorizontalDivider(
                         modifier = Modifier
                             .weight(1f)
-                            .height(4.dp), color = Color.DarkGray
+                            .height(4.dp),color = if (isSystemInDarkTheme()) Color.White else Color.DarkGray
                     )
                 }
                 OutlinedIconButton(
                     onClick = { },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(55.dp),
-                    shape = RoundedCornerShape(18.dp),
+                        .height(45.dp),
+                    shape = RoundedCornerShape(10.dp),
                 ) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp),
-
-                        verticalAlignment = Alignment.CenterVertically
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.facebook),
                             contentDescription = null,
                             modifier = Modifier
-                                .padding(start = 20.dp)
-                                .size(40.dp),
-                            alignment = Alignment.CenterStart
-                        )
+                                .size(30.dp),
+                            )
+                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = "Login with Facebook",
-                            fontSize = 20.sp,
+                            fontSize = 18.sp,
                             color = Color.Gray,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                        )
+                            modifier = Modifier
+                                .padding(vertical = 10.dp),
+                            )
                     }
                 }
-
                 OutlinedIconButton(
                     onClick = { },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(55.dp),
-                    shape = RoundedCornerShape(18.dp),
+                        .height(45.dp),
+                    shape = RoundedCornerShape(10.dp),
                 ) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp),
-
-                        verticalAlignment = Alignment.CenterVertically
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.google),
                             contentDescription = null,
                             modifier = Modifier
-                                .padding(start = 20.dp)
-                                .size(40.dp),
-                            alignment = Alignment.CenterStart
+                                .size(30.dp),
                         )
+                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = "Login with Google",
-                            fontSize = 20.sp,
+                            fontSize = 18.sp,
                             color = Color.Gray,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
+                            modifier = Modifier
+                                .padding(vertical = 10.dp),
                         )
                     }
                 }

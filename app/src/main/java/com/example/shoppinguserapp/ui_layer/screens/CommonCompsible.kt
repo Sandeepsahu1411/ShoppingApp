@@ -26,6 +26,7 @@ import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -57,6 +58,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -107,7 +109,7 @@ fun CustomOutlinedTextField(
             Text(
                 text = placeholderText,
                 color = if (isSystemInDarkTheme()) Color(0xFFEFCECE) else Color.Gray,
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodyMedium
             )
         },
         prefix = prefix,
@@ -164,12 +166,11 @@ fun CustomOutlinedTextField(
 fun CustomButton(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+    modifier: Modifier = Modifier.fillMaxWidth(),
     textModifier: Modifier = Modifier.padding(vertical = 3.dp),
     containerColor: Color = Color(0xFFF68B8B),
     contentColor: Color = Color.White,
     shape: Shape = RoundedCornerShape(10.dp),
-    fontSize: TextUnit = 18.sp,
     enabled: Boolean = true
 ) {
     Button(
@@ -184,7 +185,7 @@ fun CustomButton(
     ) {
         Text(
             text = text,
-            fontSize = fontSize,
+            fontSize = 18.sp,
             modifier = textModifier,
             fontWeight = FontWeight.Bold
         )
@@ -238,7 +239,7 @@ fun SuccessDialog(showDialog: Boolean, onDismiss: () -> Unit) {
                         Color(0xFFF68B8B)
                     ), modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp)
                 ) {
-                    Text(text = "Done")
+                    Text(text = "Done", color = if(isSystemInDarkTheme()) Color.White else Color.Black)
                 }
             }, title = {
                 Column(
@@ -276,7 +277,7 @@ fun SuccessDialog(showDialog: Boolean, onDismiss: () -> Unit) {
                 Text(
                     text = "Congratulations, you have completed your registration!",
                     textAlign = TextAlign.Center,
-                    color = Color.Black,
+                    color = if (isSystemInDarkTheme()) Color.White else Color.Black,
                     fontSize = 16.sp,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -305,35 +306,58 @@ fun animation(): Float {
 
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBox(
     value: String,
     onValueChange: (String) -> Unit
 ) {
-    OutlinedTextField(
-        modifier = Modifier.fillMaxWidth().height(55.dp),
+    BasicTextField(
         value = value,
         onValueChange = onValueChange,
-        placeholder = { Text(text = "Search", color = Color.Gray) },
-        leadingIcon = {
-            Icon(
-                Icons.Default.Search, contentDescription = "Search",
-                tint = Color(0xFFF68B8B),
-                modifier = Modifier.size(30.dp),
-            )
-        },
-
         singleLine = true,
-        shape = RoundedCornerShape(12.dp),
-        colors = TextFieldDefaults.textFieldColors(
-            containerColor = Color.Transparent,
-            focusedIndicatorColor = Color(0xFFF68B8B),
-            unfocusedIndicatorColor = Color(0xFFF68B8B),
-        )
-    )
+        textStyle = TextStyle(
+            fontSize = 14.sp,
+            color = if (isSystemInDarkTheme()) Color.White else Color.Black
+        ),
+        cursorBrush = SolidColor(Color(0xFFF68B8B)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(45.dp)
+            .background(Color.Transparent, shape = RoundedCornerShape(12.dp))
+            .border(1.dp, Color(0xFFF68B8B), RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp, vertical = 0.dp), // no vertical padding here
+        decorationBox = { innerTextField ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
+                    tint = Color(0xFFF68B8B),
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
 
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    if (value.isEmpty()) {
+                        Text(
+                            text = "Search",
+                            color = Color.Gray,
+                            fontSize = 14.sp
+                        )
+                    }
+                    innerTextField()
+                }
+            }
+        }
+    )
 }
+
 
 
 @Composable

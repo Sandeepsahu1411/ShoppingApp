@@ -1,9 +1,11 @@
 package com.example.shoppinguserapp.domen_layer.repo
 
+import android.app.Notification
 import android.net.Uri
 import com.example.shoppinguserapp.common.ResultState
 import com.example.shoppinguserapp.domen_layer.data_model.CartModel
 import com.example.shoppinguserapp.domen_layer.data_model.Category
+import com.example.shoppinguserapp.domen_layer.data_model.NotificationModel
 import com.example.shoppinguserapp.domen_layer.data_model.OrderModel
 import com.example.shoppinguserapp.domen_layer.data_model.Products
 import com.example.shoppinguserapp.domen_layer.data_model.ShippingModel
@@ -35,7 +37,7 @@ interface Repo {
     fun checkProductCartRepo(productId: String): Flow<ResultState<Boolean>>
     fun getProductsCartRepo(): Flow<ResultState<List<CartModel>>>
     fun deleteProductCartRepo(): Flow<ResultState<String>>
-    fun updateProductCartRepo( productId: String, newQty: Int): Flow<ResultState<String>>
+    fun updateProductCartRepo(productId: String, newQty: Int): Flow<ResultState<String>>
 
     fun addShippingRepo(shippingModel: ShippingModel): Flow<ResultState<String>>
     fun getShippingRepo(): Flow<ResultState<ShippingModel>>
@@ -43,10 +45,9 @@ interface Repo {
     fun addOrderRepo(orderModel: OrderModel): Flow<ResultState<String>>
     fun getOrderRepo(): Flow<ResultState<List<OrderModel>>>
 
-
-
-
-
+    fun addNotificationRepo(notification: NotificationModel): Flow<ResultState<String>>
+    fun getNotificationsRepo(): Flow<ResultState<List<NotificationModel>>>
+    fun markNotificationAsSeenRepo(notificationId: String): Flow<ResultState<String>>
 
 
 }

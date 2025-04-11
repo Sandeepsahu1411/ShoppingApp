@@ -1,5 +1,6 @@
 package com.example.shoppinguserapp.ui_layer.di
 
+import com.example.shoppinguserapp.data_layer.notifications.PushNotification
 import com.example.shoppinguserapp.data_layer.repoimple.Repoimple
 import com.example.shoppinguserapp.domen_layer.repo.Repo
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
@@ -21,9 +22,17 @@ object UiModule {
         firebaseFireStore: FirebaseFirestore,
         firebaseAuth: FirebaseAuth,
         firebaseStorage: FirebaseStorage,
-        firebaseMessaging:FirebaseMessaging
-    ): Repo{
-        return Repoimple(firebaseFireStore, firebaseAuth, firebaseStorage,firebaseMessaging)
+        firebaseMessaging: FirebaseMessaging,
+        pushNotification: PushNotification
+
+    ): Repo {
+        return Repoimple(
+            firebaseFireStore,
+            firebaseAuth,
+            firebaseStorage,
+            firebaseMessaging,
+            pushNotification
+        )
 
     }
 

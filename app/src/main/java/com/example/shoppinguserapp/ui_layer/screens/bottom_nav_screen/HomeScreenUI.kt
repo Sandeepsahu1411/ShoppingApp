@@ -1,10 +1,12 @@
 package com.example.shoppinguserapp.ui_layer.screens.bottom_nav_screen
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,13 +32,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.NotificationAdd
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,18 +69,30 @@ import com.example.shoppinguserapp.ui_layer.navigation.Routes
 import com.example.shoppinguserapp.ui_layer.screens.BannerSection
 import com.example.shoppinguserapp.ui_layer.screens.SearchBox
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
+import com.example.shoppinguserapp.ui_layer.viewmodel.NotificationViewModel
+import com.google.android.play.integrity.internal.f
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavController) {
+fun HomeScreenUI(
+    viewModel: AppViewModel = hiltViewModel(),
+    navController: NavController,
+    notificationViewModel: NotificationViewModel = hiltViewModel()
+) {
 
     val context = LocalContext.current
     val homeState by viewModel.homeScreenState.collectAsStateWithLifecycle()
     var seeAllCategory by remember { mutableStateOf(false) }
     var search by remember { mutableStateOf("") }
 
+    val unseenCountState = notificationViewModel.notificationState.collectAsStateWithLifecycle()
+    val unseenCount = unseenCountState.value.success?.count {
+        !it.seen
+    } ?: 0
 
-
+    LaunchedEffect(Unit) {
+        notificationViewModel.getNotification()
+    }
     Column(
         modifier = Modifier.fillMaxSize()
 
@@ -81,23 +101,43 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp)
+                .padding(14.dp, 0.dp)
         ) {
-
             Box(modifier = Modifier.weight(1f)) {
                 SearchBox(value = search, onValueChange = { search = it })
             }
-            IconButton(onClick = {
-                navController.navigate(
-                    Routes.NotificationScreen
-                )
-            }) {
+
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        navController.navigate(Routes.NotificationScreen)
+                    }
+
+            ) {
                 Icon(
-                    Icons.Outlined.NotificationAdd, contentDescription = "notification",
+                    imageVector = Icons.Outlined.Notifications,
+                    contentDescription = "notification",
                     tint = Color(0xFFF68B8B),
-                    modifier = Modifier.size(30.dp),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(30.dp)
                 )
+                if (unseenCount > 0) {
+                    Badge(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = 0.dp, y = (4).dp)
+                    ) {
+                        Text(unseenCount.toString(), fontSize = 10.sp)
+                    }
+                }
             }
+
+
         }
         when {
             homeState.isLoading -> {
@@ -113,8 +153,7 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
             homeState.category != null && homeState.products != null -> {
                 //Main Body Content LazyColumn
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     //Category And See All Row
@@ -122,7 +161,8 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 14.dp),
+                                .padding(horizontal = 14.dp)
+                                .padding(top = 10.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
@@ -397,69 +437,69 @@ fun HomeScreenUI(viewModel: AppViewModel = hiltViewModel(), navController: NavCo
                                             .padding(8.dp)
                                     ) {
 
-                                            Text(
+                                        Text(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .weight(0.35f),
+                                            text = product.name,
+                                            color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color(
+                                                0xFF8C8585
+                                            ),
+                                            lineHeight = 16.sp,
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold
+
+                                        )
+                                        Column(
+                                            Modifier.weight(0.65f)
+                                        ) {
+                                            Text(text = product.category, fontSize = 14.sp)
+                                            Row {
+                                                Text(
+                                                    text = "Rs:",
+                                                    color = Color(0xFFFF4081),
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = " ${product.finalPrice}",
+                                                    color = Color(0xFFFF4081),
+                                                    fontSize = 18.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .weight(0.35f),
-                                                text = product.name,
-                                                color = if (isSystemInDarkTheme()) Color(0xFFF68B8B) else Color(
-                                                    0xFF8C8585
-                                                ),
-                                                lineHeight = 16.sp,
-                                                fontSize = 16.sp,
-                                                fontWeight = FontWeight.Bold
-
-                                            )
-                                            Column(
-                                                Modifier.weight(0.65f)
+                                                    .padding(top = 4.dp)
                                             ) {
-                                                Text(text = product.category, fontSize = 14.sp)
-                                                Row {
-                                                    Text(
-                                                        text = "Rs:",
-                                                        color = Color(0xFFFF4081),
-                                                        fontSize = 14.sp,
-                                                        fontWeight = FontWeight.Bold
-                                                    )
-                                                    Text(
-                                                        text = " ${product.finalPrice}",
-                                                        color = Color(0xFFFF4081),
-                                                        fontSize = 18.sp,
-                                                        fontWeight = FontWeight.Bold
-                                                    )
-                                                }
-                                                Spacer(modifier = Modifier.width(8.dp))
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(top = 4.dp)
-                                                ) {
-                                                    Text(
-                                                        text = "Rs:",
-                                                        color = if (isSystemInDarkTheme()) Color.White else Color(
-                                                            0xFFFF4081
-                                                        ),
+                                                Text(
+                                                    text = "Rs:",
+                                                    color = if (isSystemInDarkTheme()) Color.White else Color(
+                                                        0xFFFF4081
+                                                    ),
 
-                                                        fontSize = 14.sp,
-                                                        fontWeight = FontWeight.Bold
-                                                    )
-                                                    Text(
-                                                        text = " ${product.price} ",
-                                                        fontSize = 16.sp,
-                                                        textDecoration = TextDecoration.LineThrough
-                                                    )
-                                                    Spacer(modifier = Modifier.width(3.dp))
-                                                    Text(
-                                                        text = "20% off",
-                                                        color = Color(0xFFFF4081),
-                                                        fontSize = 12.sp,
-                                                        fontWeight = FontWeight.Bold
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = " ${product.price} ",
+                                                    fontSize = 16.sp,
+                                                    textDecoration = TextDecoration.LineThrough
+                                                )
+                                                Spacer(modifier = Modifier.width(3.dp))
+                                                Text(
+                                                    text = "20% off",
+                                                    color = Color(0xFFFF4081),
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.Bold
 
-                                                    )
-                                                }
-
+                                                )
                                             }
+
+                                        }
 
 
                                     }

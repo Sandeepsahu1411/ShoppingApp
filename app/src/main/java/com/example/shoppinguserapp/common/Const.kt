@@ -12,3 +12,6 @@ const val SHIPPING_BY_USER = "shippingByUser"
 const val ORDER = "order"
 const val ORDER_BY_USER = "orderByUser"
 const val USER_TOKEN = "userToken"
+const val NOTIFICATIONS = "notifications"
+const val NOTIFICATIONS_BY_USER = "notificationsByUser"
+

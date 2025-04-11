@@ -2,7 +2,6 @@ package com.example.shoppinguserapp
 
 import android.app.Activity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,19 +10,13 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Alignment
-
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.zIndex
-
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.shoppinguserapp.data_layer.notifications.createNotificationChannel
+import com.example.shoppinguserapp.data_layer.notifications.sendNotification
 import com.example.shoppinguserapp.domen_layer.data_model.CartModel
 import com.example.shoppinguserapp.domen_layer.data_model.OrderModel
 import com.example.shoppinguserapp.domen_layer.data_model.ProductItem
@@ -33,18 +26,12 @@ import com.example.shoppinguserapp.ui.theme.ShoppingUserAppTheme
 import com.example.shoppinguserapp.ui_layer.navigation.AppNavigation
 import com.example.shoppinguserapp.ui_layer.navigation.Routes
 import com.example.shoppinguserapp.ui_layer.viewmodel.AppViewModel
-
+import com.example.shoppinguserapp.ui_layer.viewmodel.NotificationViewModel
 import com.google.firebase.auth.FirebaseAuth
-import com.google.gson.Gson
 import com.razorpay.Checkout
-import com.razorpay.PayloadHelper
 import com.razorpay.PaymentData
-import com.razorpay.PaymentResultListener
 import com.razorpay.PaymentResultWithDataListener
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.util.UUID
 import javax.inject.Inject
@@ -54,7 +41,11 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
     private lateinit var navController: NavController
 
     @Inject
+    lateinit var context: Activity
+
+    @Inject
     lateinit var firebaseAuth: FirebaseAuth
+
 
     var productId: String? = null
     var productData: Products? = null
@@ -66,6 +57,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
     var productSize: String = ""
 
     private val viewModel: AppViewModel by viewModels()
+    private val notificationViewModel: NotificationViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,10 +77,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
         }
         Checkout.preload(applicationContext)
         val co = Checkout()
-        // apart from setting it in AndroidManifest.xml, keyId can also be set
-        // programmatically during runtime
         co.setKeyID("")
-
 
     }
 
@@ -207,7 +196,8 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                 postalCode = getShippingData?.pinCode.toString(),
             )
         )
-
+        createNotificationChannel(context)
+        sendNotification(context, notificationViewModel)
         if (productId.isNullOrEmpty()) {
             viewModel.deleteProductCart()
         }

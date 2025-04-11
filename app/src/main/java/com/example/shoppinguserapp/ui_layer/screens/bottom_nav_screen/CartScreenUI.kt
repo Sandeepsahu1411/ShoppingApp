@@ -102,7 +102,6 @@ fun CartScreenUI(navController: NavController, viewModel: AppViewModel = hiltVie
                 .fillMaxWidth()
                 .padding(horizontal = 15.dp, vertical = 10.dp)
                 .weight(0.85f),
-
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when {
